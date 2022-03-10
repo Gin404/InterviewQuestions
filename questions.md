@@ -82,7 +82,7 @@
       2. 注意！这里countDownLatch.await放在了一个awaitCommit的runnable里。最终放在QueueWork里。
       3. 同时，enqueueDiskWrite里的磁盘写入工作，也是放在QueueWork里。
     
-    *关键词：*
+    关键词：
     1. 全量从磁盘读取xml键值对，放入内存。
     2. 读写分离，不共用一把锁。
     3. put操作先更新mModified，commit/apply后，合并mMap，更新磁盘。
