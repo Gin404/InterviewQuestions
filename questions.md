@@ -31,3 +31,11 @@
 ### 7. Fragment通信方式？
 ### 8. MVC、MVP、MVVM？
 ### 9. Databinding原理？ViewModel原理？
+
+## 源码/三方库
+### 1. SharedPreferences是不是进程安全的？
+    答：不是。但是有一个已经废弃的多进程模式 MODE_MULTI_PROCESS。 MODE_MULTI_PROCESS的时候，会在获取sp对象后进行一个判断：
+        如果 
+          mDiskWritesInFlight>0，也就是当前有未完成的写入磁盘的任务；
+          文件上次操作的时间和大小（可能是另一个进程）和缓存的本进程上次时间和大小对不上；
+        就重新从磁盘读取并解析xml。但是这并不能保证实时性，进程A读取完，进程B仍然有可能更新文件。
