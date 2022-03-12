@@ -56,7 +56,11 @@ B: onPause 直到 onDetatch；
 缺点：频繁创建Fragment,也就是频繁走Fragment生命周期创建和销毁流程，造成性能开销。
 
 - **commit和commitAlowStateloss**  
-commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队列。对应的同步方法为commitNow()，commit()内部会有checkStateLoss()操作，如果开发人员使用不当（比如commit()操作在onSaveInstanceState()之后），可能会抛出异常，而commitAllowingStateLoss()方法则是不会抛出异常版本的commit()方法，但是尽量使用commit()，而不要使用commitAllowingStateLoss()。
+commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队列。对应的同步方法为commitNow()，commit()内部会有checkStateLoss()操作，如果开发人员使用不当（比如commit()操作在onSaveInstanceState()之后），可能会抛出异常，而commitAllowingStateLoss()方法则是不会抛出异常版本的commit()方法，但是尽量使用commit()，而不要使用commitAllowingStateLoss()。  
+
+- 参考文章  
+https://juejin.cn/post/6844903816240857095  
+https://juejin.cn/post/6943560702292557860
        
 ### 7. Fragment通信方式？
 ### 8. MVC、MVP、MVVM？
