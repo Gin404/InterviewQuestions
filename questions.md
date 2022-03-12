@@ -46,7 +46,14 @@ B: onAttach 直到 onResume。
 A: 无变化；  
 B: onPause 直到 onDetatch；  
 (同样，如果同时调用了addToBackStack，B只会走到onDestroyView.)  
-        
+
+- **add和replace比较**  
+1. 当Fragment不可见时，如果你要保留Fragment中的数据以及View的显示状态，那么可以使用add操作，后续中针对不同的状态隐藏和显示不同的Fragment。  
+优点：快，知识Fragment中View的显示和隐藏。  
+缺点：内存中保留的数据太多，容易导致造成OOM的风险。  
+2. 当Fragment不可见时，你不需要保留Fragment中的数据以及View的显示状态，那么可以使用replace。  
+优点：节省内存，不需要的数据能立即释放掉。  
+缺点：频繁创建Fragment,也就是频繁走Fragment生命周期创建和销毁流程，造成性能开销。
        
 ### 7. Fragment通信方式？
 ### 8. MVC、MVP、MVVM？
