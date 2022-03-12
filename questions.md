@@ -37,8 +37,7 @@ B: onAttach 直到 onResume。
 此时，remove B，生命周期变化如下：
 A: 无变化；
 B: onPause 直到 onDetatch。
-（值得注意的是，如果同时调用了addToBackStack，B只会走到onDestroyView，此时通过findFragmentByTag依然可以找到FragmentB的实例。）
-
+（值得注意的是，如果同时调用了addToBackStack，B只会走到onDestroyView，此时通过findFragmentByTag依然可以找到FragmentB的实例。）    
 &ensp;通过replace添加Fragment B，生命周期变化如下：
 A: onPause 直到 onDetatch；
 B: onAttach 直到 onResume。
