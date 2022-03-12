@@ -31,14 +31,15 @@
 1. fragment容器为空的时候，replace和add没有区别。
         
 2. 如果fragment容器有一个Fragment A。  
-&ensp;通过add添加Fragment B，生命周期变化如下：  
+- 通过add添加Fragment B，生命周期变化如下：  
 A: 无变化；  
 B: onAttach 直到 onResume。  
 此时，remove B，生命周期变化如下：  
 A: 无变化；  
 B: onPause 直到 onDetatch。  
-（值得注意的是，如果同时调用了addToBackStack，B只会走到onDestroyView，此时通过findFragmentByTag依然可以找到FragmentB的实例。）    
-&ensp;通过replace添加Fragment B，生命周期变化如下：  
+（值得注意的是，如果同时调用了addToBackStack，B只会走到onDestroyView，此时通过findFragmentByTag依然可以找到FragmentB的实例。）   
+
+- 通过replace添加Fragment B，生命周期变化如下：  
 A: onPause 直到 onDetatch；  
 B: onAttach 直到 onResume。  
 在2处，通过findFragmentByTag可以找到A的实例。remove B，生命周期状态如下，  
