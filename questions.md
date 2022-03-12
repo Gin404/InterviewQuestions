@@ -30,7 +30,7 @@
 ### 6. Fragment:replace和add的区别？show和hide？commit和commitAllowStateloss？
 1. fragment容器为空的时候，replace和add没有区别。
         
-2. 如果fragment容器有一个Fragment A。
+2. 如果fragment容器有一个Fragment A。  
 &ensp;通过add添加Fragment B，生命周期变化如下：
 A: 无变化；
 B: onAttach 直到 onResume。
