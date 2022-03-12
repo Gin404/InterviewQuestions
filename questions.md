@@ -28,9 +28,9 @@
 ### 4. HandlerThread？
 ### 5. invalidate/postInvalidate/requestLayout的区别？*
 ### 6. Fragment:replace和add的区别？show和hide？commit和commitAllowStateloss？
-— fragment容器为空的时候，replace和add没有区别。
+- fragment容器为空的时候，replace和add没有区别。
         
-— 如果fragment容器有一个Fragment A。
+- 如果fragment容器有一个Fragment A。
 通过add添加Fragment B，生命周期变化如下：
 A: 无变化；
 B: onAttach 直到 onResume。
