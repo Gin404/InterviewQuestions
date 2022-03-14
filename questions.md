@@ -142,4 +142,9 @@ https://juejin.cn/post/6943560702292557860
 https://juejin.cn/post/6844903758355234824#comment  
 https://juejin.cn/post/6884505736836022280  
 
-      
+## kotlin
+### 1. 扩展函数和扩展属性？
+具体用法：  
+	fun 类名.方法名([参数 1, 参数 2, ...]): 返回类型 {
+	    方法体
+	}
