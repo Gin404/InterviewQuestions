@@ -95,9 +95,10 @@ commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队
 https://juejin.cn/post/6844903816240857095  
 https://juejin.cn/post/6943560702292557860
        
-### 7. Fragment通信方式？
-### 8. MVC、MVP、MVVM？
-### 9. Databinding原理？ViewModel原理？
+### 7. invalidate和requestlayout的区别？postInvalidate呢？
+### 8. Fragment通信方式？
+### 9. MVC、MVP、MVVM？
+### 10. Databinding原理？ViewModel原理？
 
 ## 源码/三方库
 ### 1. SharedPreferences是不是进程安全的？
