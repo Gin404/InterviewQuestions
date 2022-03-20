@@ -56,13 +56,40 @@ HTTPS：是以安全为目标的HTTP通道，简单讲是HTTP的安全版，即H
 
 ## Android基础
 ### 1. Handler原理？
+
+1. Looper 准备和开启循环
+
+   - Looper#`prepare()` 初始化线程独有的 `Looper` 以及 `MessageQueue`
+   - Looper#`loop()` 开启**死循环**读取 MessageQueue 中下一个满足执行时间的 Message
+     - 尚无 Message 的话，调用 Native 侧的 `pollOnce()` 进入**无限等待**
+     - 存在 Message，但执行时间 `when` 尚未满足的话，调用 pollOnce() 时传入剩余时长参数进入**有限等待**
+
+2. Message 发送 、入队、出队
+
+   Native 侧如果处于无限等待的话：任意线程向 `Handler` 发送 `Message` 或 `Runnable` 后，Message 将按照 when 条件的先后，被插入 Handler 持有的 Looper 实例所对应的 MessageQueue  中**适当的位置**。 MessageQueue 发现有合适的 Message 插入后将调用 Native 侧的 `wake()` 唤醒无限等待的线程。这将促使 MessageQueue 的读取继续**进入下一次循环**，此刻 Queue 中已有满足条件的 Message 则出队返回给 Looper
+
+   Native 侧如果处于有限等待的话：在等待指定时长后 epoll_wait 将返回。线程继续读取 MessageQueue，此刻因为时长条件将满足将其出队
+
+3. Looper 处理 Message 的实现
+
+   Looper 得到 Message 后回调 Message 的 `callback` 属性即 Runnable，或依据 `target` 属性即 Handler，去执行 Handler 的回调。
+
+   - 存在 `mCallback` 属性的话回调 `Handler$Callback`
+   - 反之，回调 `handleMessage()`
+
+   
+
+   参考链接：https://juejin.cn/post/7054830013102686238#heading-0
+
+   https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E6%9C%BA%E5%88%B6%E4%BD%A0%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E7%9A%84%E4%B8%80%E5%88%87.md
+
 ### 2. 同步屏障？Choreographer？
 ### 3. IdleHandler？调用时机？用处？
 ### 4. HandlerThread？
 ### 5. invalidate/postInvalidate/requestLayout的区别？*
 ### 6. Fragment:replace和add的区别？show和hide？commit和commitAllowStateloss？
 1. fragment容器为空的时候，replace和add没有区别。
-        
+   
 2. 如果fragment容器有一个Fragment A。  
 - 通过add添加Fragment B，生命周期变化如下：  
 A: 无变化；  
@@ -92,8 +119,8 @@ B: onPause 直到 onDetatch；
 commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队列。对应的同步方法为commitNow()，commit()内部会有checkStateLoss()操作，如果开发人员使用不当（比如commit()操作在onSaveInstanceState()之后），可能会抛出异常，而commitAllowingStateLoss()方法则是不会抛出异常版本的commit()方法，但是尽量使用commit()，而不要使用commitAllowingStateLoss()。  
 
 - 参考文章  
-https://juejin.cn/post/6844903816240857095  
-https://juejin.cn/post/6943560702292557860
+  https://juejin.cn/post/6844903816240857095  
+  https://juejin.cn/post/6943560702292557860
        
 ### 7. invalidate和requestlayout的区别？postInvalidate呢？
 ### 8. Fragment通信方式？
@@ -117,15 +144,15 @@ https://juejin.cn/post/6943560702292557860
 
 知识点2：SharedPreferencesImpl。  
 1. 构造函数：  
-  a. 或根据当前file创建一个灾备文件。  
-  b. mMap：用于存储从file解析出来的键值对。  
-  c. 加载并解析xml键值对，此过程是在新的线程里异步进行的。  
+    a. 或根据当前file创建一个灾备文件。  
+    b. mMap：用于存储从file解析出来的键值对。  
+    c. 加载并解析xml键值对，此过程是在新的线程里异步进行的。  
 
 2. 异步加载方法：loadFromDisk。  
-  a. 如果灾备文件存在，就删除原文件，把灾备文件命名为原文件。  
-  b. 加载/解析键值对，存入mMap。记录文件修改时间、文件大小。  
-  c. 此过程加锁，load完会notifyAll。(对象锁A)  
-  
+    a. 如果灾备文件存在，就删除原文件，把灾备文件命名为原文件。  
+    b. 加载/解析键值对，存入mMap。记录文件修改时间、文件大小。  
+    c. 此过程加锁，load完会notifyAll。(对象锁A)  
+
 知识点3：getString(String key, @Nullable String defValue)。  
 1. 加锁，await等待load过程结束，线程安全。（对象锁A）  
 2. 直接操作内存mMap中的值。  
@@ -137,12 +164,12 @@ https://juejin.cn/post/6943560702292557860
 
 知识点5：commit()  
 1. 首先把mModified合并到mMap里。  
-  a. 有一个重要参数叫mDiskWritesInFlight，代表“此时需要将数据写入磁盘，但还未处理或未处理完成的次数”，唯独在合并之前会+1。  
+    a. 有一个重要参数叫mDiskWritesInFlight，代表“此时需要将数据写入磁盘，但还未处理或未处理完成的次数”，唯独在合并之前会+1。  
 2. 调用enqueueDiskWrite写入到磁盘上。此方法用一个countDownLatch同步等待写入过程。写入过程完成，才会conuntDown，在commit里往下走。  
-  a. 写入磁盘加锁（对象锁C）。  
-  b. 写入后，mDiskWritesInFlight会减1。  
-  c. 重要：对于commit而言，如果只有一个commit请求，那就在当前线程处理写入过程；如果有多个，那就放在QueuedWork里处理。  
-  d. 写入磁盘的时候，会对老文件进行灾备（重命名），然后一次性写入所有数据。如果成功就删除灾备文件，并记录时间、大小；否则删除这个半成品。  
+    a. 写入磁盘加锁（对象锁C）。  
+    b. 写入后，mDiskWritesInFlight会减1。  
+    c. 重要：对于commit而言，如果只有一个commit请求，那就在当前线程处理写入过程；如果有多个，那就放在QueuedWork里处理。  
+    d. 写入磁盘的时候，会对老文件进行灾备（重命名），然后一次性写入所有数据。如果成功就删除灾备文件，并记录时间、大小；否则删除这个半成品。  
 
 
 知识点6：apply()  
@@ -175,7 +202,7 @@ https://juejin.cn/post/6884505736836022280
 	    get() {
 		方法体
 	    }
-
+	
 	var 类名.属性名: 类型
 	    get() {
 		方法体
@@ -183,6 +210,6 @@ https://juejin.cn/post/6884505736836022280
 	    set(value) {
 		方法体
 	    }
-	    
+
 扩展属性和扩展方法的原理一样，只不过扩展属性的方法名是自动生成的getter和setter。  
 参考文章：https://juejin.cn/post/6844904170609180680
