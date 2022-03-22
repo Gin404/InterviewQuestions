@@ -241,6 +241,8 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 		}
 	}
 
+主要是子view通过requestDisallowInterceptTouchEvent来决定父view是否拦截事件，但是这个方法对于down事件没有用（因为父view会在down到来的时候重置disallow标记位），所以需要父view单独处理down事件。
+
 ### 11. Fragment通信方式？
 ### 12. MVC、MVP、MVVM？
 ### 13. Databinding原理？ViewModel原理？
