@@ -171,7 +171,7 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 优先级其实是处理顺序：onTouchListener.onTouch > onTouchEvent > onClickListener.onClick。  
 其中onTouchEvent是否被调用取决于onTouchListener.onTouch的返回值。onClickListener是在onTouchEvent里处理up事件的时候调用的。  
 ### 10. 滑动冲突如何解决？  
-**两种方式：**  
+**两种方式**    
 1. 外部拦截法。   
 父容器改动：
 
