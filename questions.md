@@ -135,9 +135,39 @@ commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队
   https://juejin.cn/post/6943560702292557860
        
 ### 7. invalidate和requestlayout的区别？postInvalidate呢？
-### 8. Fragment通信方式？
-### 9. MVC、MVP、MVVM？
-### 10. Databinding原理？ViewModel原理？
+### 8. 事件分发机制？
+分析滑动事件分发的4个重点：  
+1. 滑动事件MotionEvent，一般需要关注3个事件种类：DOWN，UP，MOVE；  
+2. dispatchTouchEvent  
+作用是分发事件，如果一个事件分发到了一个view，则他的dispatchTouchEvent方法一定会被调用。返回结果取决于当前view的onTouchEvent和子View的dispatchTouchEvent，表示事件是否被消耗。
+3. onInterceptTouchEvent。  
+在dispatchTouchEvent方法内部调用，用于返回是否拦截这个事件。如果拦截，同一个事件序列不会再次调用此方法。  
+4. onTouchEvent  
+在dispatchTouchEvent方法中调用，用来处理点击事件。返回值代表是否消耗当前事件，如果消耗，则在当前事件序列中不会再调用此方法。  
+
+下面伪代码可以表示事件分发的流程：  
+	public boolean dispatchTouchEvent(MotionEvent ev) {
+	boolean consume = false;
+	if(onInterceptTouchEvent(ev)) {
+		consume = onTouchEvent(ev);
+	} else {
+		consume = child.dispatchTouchEvent(ev);
+	}
+		return consume;
+	}
+一个MotionEvent的传递顺序：Activity->Window->View...  
+**如果不做覆写，默认的事件传递流程：**  
+Activity套MyViewGroup套MyView  
+MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGroup: onInterceptTouchEvent -> MyView: dispatchTouchEvent -> MyView: onTouchEvent -> MyViewGroup: onTouchEvent -> MainActivity: TouchEvent  
+其他一些要点：  
+1. 事件序列以down为起点，中间有若干个move，最终以up为终点。  
+2. 某个view一旦决定拦截，那整个事件序列一般只能由他来处理。  
+3. 如果onTouchEvent处理down的时候返回false，则后续事件都不会再交给他处理。而是交由他的父view处理。  
+**还有一些要点强烈建议看《Android开发艺术探索》。**
+
+### 9. Fragment通信方式？
+### 10. MVC、MVP、MVVM？
+### 11. Databinding原理？ViewModel原理？
 
 ## 源码/三方库
 ### 1. SharedPreferences是不是进程安全的？
