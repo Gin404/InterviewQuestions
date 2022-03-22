@@ -148,12 +148,12 @@ commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队
 下面伪代码可以表示事件分发的流程：  
 
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-	boolean consume = false;
-	if(onInterceptTouchEvent(ev)) {
-		consume = onTouchEvent(ev);
-	} else {
-		consume = child.dispatchTouchEvent(ev);
-	}
+		boolean consume = false;
+		if(onInterceptTouchEvent(ev)) {
+			consume = onTouchEvent(ev);
+		} else {
+			consume = child.dispatchTouchEvent(ev);
+		}
 		return consume;
 	}
 
@@ -167,9 +167,13 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 3. 如果onTouchEvent处理down的时候返回false，则后续事件都不会再交给他处理。而是交由他的父view处理。  
 **还有一些要点强烈建议看《Android开发艺术探索》。**
 
-### 9. Fragment通信方式？
-### 10. MVC、MVP、MVVM？
-### 11. Databinding原理？ViewModel原理？
+### 9. onTouchListener.onTouch、onTouchEvent、onClickListener.onClick优先级？
+优先级其实是处理顺序：onTouchListener.onTouch > onTouchEvent > onClickListener.onClick。  
+其中onTouchEvent是否被调用取决于onTouchListener.onTouch的返回值。  
+### 10. 滑动冲突如何解决？
+### 11. Fragment通信方式？
+### 12. MVC、MVP、MVVM？
+### 13. Databinding原理？ViewModel原理？
 
 ## 源码/三方库
 ### 1. SharedPreferences是不是进程安全的？
