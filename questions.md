@@ -146,6 +146,7 @@ commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队
 在dispatchTouchEvent方法中调用，用来处理点击事件。返回值代表是否消耗当前事件，如果消耗，则在当前事件序列中不会再调用此方法。  
 
 下面伪代码可以表示事件分发的流程：  
+
 	public boolean dispatchTouchEvent(MotionEvent ev) {
 	boolean consume = false;
 	if(onInterceptTouchEvent(ev)) {
@@ -155,6 +156,7 @@ commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队
 	}
 		return consume;
 	}
+
 一个MotionEvent的传递顺序：Activity->Window->View...  
 **如果不做覆写，默认的事件传递流程：**  
 Activity套MyViewGroup套MyView  
