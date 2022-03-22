@@ -172,7 +172,7 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 其中onTouchEvent是否被调用取决于onTouchListener.onTouch的返回值。onClickListener是在onTouchEvent里处理up事件的时候调用的。  
 ### 10. 滑动冲突如何解决？  
 **两种方式**    
-1. 外部拦截法。   
+1.外部拦截法。   
 父容器改动：
 
 	public boolean onInterceptTouchEvent(MotionEvent event) {
@@ -201,10 +201,9 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 		return intercepted;
 	}
 
-
 注意，down事件返回false是因为一旦拦截，后续事件都会交给自己处理，返回false可以给子view处理事件的机会，毕竟我们只按需拦截move事件。  
 一旦拦截了一个move事件，后续事件都会被自己处理。up也要返回false，否则子view没法触发onClick事件。  
-2. 内部拦截法。  
+2.内部拦截法。  
 子容器的改动：
 
 	public boolean dispatchTouchEvent(MotionEvent event) {
