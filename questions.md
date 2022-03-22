@@ -170,7 +170,76 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 ### 9. onTouchListener.onTouch、onTouchEvent、onClickListener.onClick优先级？
 优先级其实是处理顺序：onTouchListener.onTouch > onTouchEvent > onClickListener.onClick。  
 其中onTouchEvent是否被调用取决于onTouchListener.onTouch的返回值。onClickListener是在onTouchEvent里处理up事件的时候调用的。  
-### 10. 滑动冲突如何解决？
+### 10. 滑动冲突如何解决？  
+**两种方式：**  
+1. 外部拦截法。
+
+	public boolean onInterceptTouchEvent(MotionEvent event) {
+		boolean intercepted = false;
+		int x = (int) event.getX();
+		int y = (int) event.getY();
+		switch (event.getAction()) {
+		    case MotionEvent.ACTION_DOWN:
+			intercepted = false;
+			break;
+		    case MotionEvent.ACTION_MOVE:
+			if (父容器需要当前点击事件) {
+			    intercepted = true;
+			} else {
+			    intercepted = false;
+			}
+			break;
+		    case MotionEvent.ACTION_UP:
+			intercepted = false;
+			break;
+		    default:
+			break;
+		}
+		mLastXIntercept = x;
+		mLastYIntercept = y;
+		return intercepted;
+	}
+
+注意，down事件返回false是因为一旦拦截，后续事件都会交给自己处理，返回false可以给子view处理事件的机会，毕竟我们只按需拦截move事件。  
+一旦拦截了一个move事件，后续事件都会被自己处理。up也要返回false，否则子view没法触发onClick事件。  
+2. 内部拦截法。  
+子容器的改动：
+
+	public boolean dispatchTouchEvent(MotionEvent event) {
+		int x = (int) event.getX();
+		int y = (int) event.getY();
+		switch (event.getAction()) {
+		    case MotionEvent.ACTION_DOWN:
+			parent.requestDisallowInterceptTouchEvent(true);
+			break;
+		    case MotionEvent.ACTION_MOVE:
+			int deltaX = x - mLastX;
+			int deltaY = y - mLastY;
+			if (父容器需要此类点击事件)){
+			parent.requestDisallowInterceptTouchEvent(false);
+		    }
+		    break;
+		    case MotionEvent.ACTION_UP:
+			break;
+		    default:
+			break;
+		}
+		mLastX = x;
+		mLastY = y;
+		return super.dispatchTouchEvent(event);
+    	}
+
+父容器的改动：  
+
+	public boolean onInterceptTouchEvent(MotionEvent event) {
+		int action = event.getAction();
+		if(action == MotionEvent.ACTION_DOWN) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 ### 11. Fragment通信方式？
 ### 12. MVC、MVP、MVVM？
 ### 13. Databinding原理？ViewModel原理？
