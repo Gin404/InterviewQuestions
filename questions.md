@@ -96,7 +96,19 @@ HTTPS：是以安全为目标的HTTP通道，简单讲是HTTP的安全版，即H
 
    https://github.com/xfhy/Android-Notes/blob/master/Blogs/Android/%E7%B3%BB%E7%BB%9F%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/Handler%E6%9C%BA%E5%88%B6%E4%BD%A0%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E7%9A%84%E4%B8%80%E5%88%87.md
 
-### 2. 同步屏障？Choreographer？
+### 2. 同步屏障？Choreographer？  
+1. 首先Messsage有一个参数isAsynchronous，当为true的时候，消息为异步消息，为false时，为同步消息。  
+2. 当一个Message的target为null的时候，那他是一个**同步屏障**。开发者无法设置target为null，MessageQueue有一个postSyncBarrier的方法，但是是private的。  
+3. 当MQ获取下一个message的时候，如果碰到了同步屏障，**那么不会取出同步屏障，而是往后遍历，跳过所有同步消息，取出下一个异步消息并执行**。  
+4. 同步屏障的移除也是由MessageQueue完成，同样是private方法。  
+**综上，理论上，开发者只能添加异步消息，但是不能自行添加/移除同步屏障。**  
+**那系统何时添加同步屏障呢？**  
+结合屏幕刷新机制和view绘制原理，手机接收VSYNC信号的时候（60hz手机每16.6ms一次）会执行view的绘制（measure、layout、draw）。具体原因就在于ViewRootImpl.scheduleTraversals。  
+**ViewRootImpl.scheduleTraversals：ui变化都会走到此方法。**  
+他干了两件事：向主线程handler发送一个屏障消息 和 向Choreographer注册一个runnable。  
+这个runnable会作为异步消息在下一个vsync信号到来的时候被执行，他也是干了两件事：**移除同步屏障 和 performTraversals执行绘制流程**。  
+**什么时候使用异步消息呢？**  
+同步Handler有一个特点是会遵循与绘制任务的顺序，设置同步屏障之后，会等待绘制任务完成，才会执行同步任务；而异步任务与绘制任务的先后顺序无法保证，在等待VSYNC的期间可能被执行，也有可能在绘制完成之后执行。因此，我的建议是：如果需要保证与绘制任务的顺序，使用同步Handler；其他，使用异步Handler。
 ### 3. IdleHandler？调用时机？用处？
 ### 4. HandlerThread？
 ### 5. invalidate/postInvalidate/requestLayout的区别？*
