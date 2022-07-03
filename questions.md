@@ -258,7 +258,31 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 
 ### 11. Fragment通信方式？
 ### 12. MVC、MVP、MVVM？
-### 13. Databinding原理？ViewModel原理？
+### 13. Databinding原理？
+### 14. LiveData原理？
+LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
+先看一下LiveData的常规用法：
+
+	public class MainActivity extends AppCompatActivity {
+   	private static final String TAG="MainActivity";
+	    @Override
+	    protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		MutableLiveData<String> mutableLiveData  = new MutableLiveData<>();
+		mutableLiveData.observe(this, new Observer<String>() {//1
+		    @Override
+		    public void onChanged(@Nullable final String s) {
+			Log.d(TAG, "onChanged:"+s);
+		    }
+		});
+		mutableLiveData.postValue("Android进阶三部曲");//2
+	    }
+	}
+	
+
+
+### 15. ViewModel原理？
 
 ## 源码/三方库
 ### 1. SharedPreferences是不是进程安全的？
