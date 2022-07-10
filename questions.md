@@ -280,7 +280,8 @@ LiveData **是一个可观察的数据持有者，并且能够感知组件的生
 	    }
 	}
 	
-
+1. oberve里会首先检查owner的状态，如果是DETROYED，则直接return。
+2. 
 
 ### 15. ViewModel原理？
 
