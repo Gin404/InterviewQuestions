@@ -111,6 +111,8 @@ HTTPS：是以安全为目标的HTTP通道，简单讲是HTTP的安全版，即H
 同步Handler有一个特点是会遵循与绘制任务的顺序，设置同步屏障之后，会等待绘制任务完成，才会执行同步任务；而异步任务与绘制任务的先后顺序无法保证，在等待VSYNC的期间可能被执行，也有可能在绘制完成之后执行。因此，我的建议是：如果需要保证与绘制任务的顺序，使用同步Handler；其他，使用异步Handler。
 ### 3. IdleHandler？调用时机？用处？
 ### 4. HandlerThread？
+一个自带handler机制的线程，用于串行执行耗时任务。  
+关键点在于run方法中mLooper = Looper.myLooper赋值的过程会加锁。getLooper方法中也会加锁，如果mLooper为空，则一直wait，直到Looper.myLooper执行完notifyAll，才会返回。所以能保证looper不会有空指针。
 ### 5. invalidate/postInvalidate/requestLayout的区别？*
 ### 6. Fragment:replace和add的区别？show和hide？commit和commitAllowStateloss？
 1. fragment容器为空的时候，replace和add没有区别。
