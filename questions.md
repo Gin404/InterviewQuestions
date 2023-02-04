@@ -260,6 +260,22 @@ MainActivity: dispatchTouchEvent -> MyViewGroup: dispatchTouchEvent -> MyViewGro
 
 ### 11. Fragment通信方式？
 ### 12. MVC、MVP、MVVM？
+首先这三个是android代码常用的框架模式，为的是方便拓展和维护。
+**MVC**  
+也就是Model-View-Controller。它用一种业务逻辑、数据、界面显示分离的方法组织代码。  
+1. Model: 针对业务所建立的数据结构和相关类。  
+2. View: 视图XML文件或者自定义View。  
+3. Controller: 通常是Activity、Fragment或者他们控制的其他类。  
+缺点: Activity还承载视图的功能，作为Controller会越来越臃肿。  
+**MVP**  
+MVC的进化版本，解放Activity，使得Model和View彻底分离。  
+1. Model: 提供数据存取。供Presenter使用。  
+2. View: 负责处理用户事件和视图部分的展示。在Android中，它可以是Activity、Fragment或者某个View控件。 
+3. Presenter: 作为View和Model沟通的桥梁，从Model检索数据返回给View。使得View和Model之间没有耦合。  
+Presenter与具体的View没有关联，而是通过预先定义好的接口进行交互。View只有getter和setter。不允许View和Model直接交互。  
+**MVVM** 
+将Presenter换成ViewModel。将View和Model进行双向绑定。Android中实现ViewModel的工具为DataBinding。  
+**DataBinding原理**
 ### 13. Databinding原理？
 ### 14. LiveData原理？
 LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
