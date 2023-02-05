@@ -285,7 +285,10 @@ Presenter与具体的View没有关联，而是通过预先定义好的接口进�
 主要根据<variable>和@Bindable注解的字段生成id。  
 **DataBinderMapperImpl**(/build/generated/source/kapt/debug/com/android/genshen/DataBinderMapperImpl.java)  	
 简单来说就是维护一组layout中的tag和本地id的映射关系，并且其中的getBinder方法也是ActivityTestBindingImpl实例化对象和获取实例的地方。  
+**ActivityTestBindingImpl**(/build/generated/source/kapt/debug/com/android/genshen/databinding/ActivityTestBindingImpl.java)  
+构造方法中对View进行绑定，获取保存View到的实例。   
 	
+**1. setData发生了什么？**  
 ### 14. LiveData原理？
 LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
 先看一下LiveData的常规用法：
