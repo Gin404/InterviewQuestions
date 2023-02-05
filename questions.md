@@ -275,8 +275,17 @@ MVC的进化版本，解放Activity，使得Model和View彻底分离。
 Presenter与具体的View没有关联，而是通过预先定义好的接口进行交互。View只有getter和setter。不允许View和Model直接交互。  
 **MVVM** 
 将Presenter换成ViewModel。将View和Model进行双向绑定。Android中实现ViewModel的工具为DataBinding。  
-**DataBinding原理**
 ### 13. Databinding原理？
+如果工程中使用了databinding，则会在编译期生成一下5个文件。假设我们的Activity是TestActivity，layout文件是activity_test.xml。  
+**activity_test.xml**(build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/activity_test.xml)   
+去掉layout标签，只保留布局的xml，并且给每一个databinding的节点打上了tag。  
+**activity_test-layout.xml**(build/intermediates/data_binding_layout_info_type_merge/debug/out/activity_test-layout.xml)  
+是对layout信息的扩展，其中variable节点记录有关variable的详细信息，target节点记录view的详细信息。  
+**BR.java**(/build/generated/source/kapt/debug/com/android/genshen/BR.java)  
+主要根据<variable>和@Bindable注解的字段生成id。  
+**DataBinderMapperImpl**(/build/generated/source/kapt/debug/com/android/genshen/DataBinderMapperImpl.java)  	
+简单来说就是维护一组layout中的tag和本地id的映射关系，并且其中的getBinder方法也是ActivityTestBindingImpl实例化对象和获取实例的地方。  
+	
 ### 14. LiveData原理？
 LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
 先看一下LiveData的常规用法：
