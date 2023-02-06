@@ -288,8 +288,9 @@ Presenter与具体的View没有关联，而是通过预先定义好的接口进�
 **ActivityTestBindingImpl**(/build/generated/source/kapt/debug/com/android/genshen/databinding/ActivityTestBindingImpl.java)  
 构造方法中对View进行绑定，获取保存View到的实例。   
 	
-**1. setData发生了什么？**  
-
+**1. binding.setData发生了什么？**  
+这里指更新binding中variable里的bean。首先更新了ActivityTestBindingImpl的bean实例，并更新dirtyFlag。然后调用父类ViewDataBinding的**requestRebind**方法。  
+requestRebind会先根据当前的LifeCycleOwner(Activity或者Fragment)的状态，如果至少是START，则继续，否则直接返回。然后判断mPendingRebind，是否有进行中的rebind，如果有直接返回，否则mPendingRebind=true，继续。最终调用mChoreographer.postFrameCallback或者mUIThreadHandler.post执行一个mRebindRunnable，区别是前者会在下一帧到来的时候才执行任务，也就是说并不在这一帧进行数据更新和刷新（推测是效率优化）
 ### 14. LiveData原理？
 LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
 先看一下LiveData的常规用法：
