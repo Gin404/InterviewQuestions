@@ -297,7 +297,7 @@ mRebindRunnable执行的是executeBindings，它是ViewDataBinding的抽象方�
 **3. View->Model的绑定怎么做到的？**  
 一般双向绑定发生在editText。在ActivityTestBindingImpl的构造方法里，会把一个有关设置editText的TextWatcher的dirtyFlag位设置为1。后边binding.setData的时候，会根据这个dirtyFlag给editText注册TextWatcher，然后在TextWatcher里更新对应的数据，完成反向绑定。
 ### 14. LiveData原理？
-LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
+LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会收到通知。   
 先看一下LiveData的常规用法：
 
 	public class MainActivity extends AppCompatActivity {
@@ -317,8 +317,13 @@ LiveData **是一个可观察的数据持有者，并且能够感知组件的生
 	    }
 	}
 	
-1. oberve里会首先检查owner的状态，如果是DETROYED，则直接return。
-2. 
+**observe流程**：	
+1. oberve里会首先检查owner的状态，如果是DETROYED，则直接return。  
+2. 往下对lifecyclerOwner和observer进行封装ObserverWrapper，保存LifecycleBoundObserver并同时向lifecycleOwner生命周期注册观察者，也是此LifecycleBoundObserver。  
+3. LifecycleBoundObserver里，shouldBeActive方法用来判断当前组件owner是否是STARTED或者RESUMED状态。LifeCycle发生变化，会回调onStateChanged，其中如果state是DESTROYED，则会移除数据的observer。否则往下调用activeStateChanged。  
+4. activeStateChanged里有两个active状态转换的方法供外部覆写。然后调用dispatchingValue。  
+5. dispatchingValue里会调用到considerNotify。considerNotify会进行active状态的再次检查，然后调用传入的**observer的onChange方法**。  
+
 
 ### 15. ViewModel原理？
 
