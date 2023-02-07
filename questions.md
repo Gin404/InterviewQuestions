@@ -291,7 +291,9 @@ Presenter与具体的View没有关联，而是通过预先定义好的接口进�
 **1. binding.setData发生了什么？**  
 这里指更新binding中variable里的bean。首先更新了ActivityTestBindingImpl的bean实例，并更新dirtyFlag。然后调用父类ViewDataBinding的**requestRebind**方法。  
 requestRebind会先根据当前的LifeCycleOwner(Activity或者Fragment)的状态，如果至少是START，则继续，否则直接返回。然后判断mPendingRebind，是否有进行中的rebind，如果有直接返回，否则mPendingRebind=true，继续。最终调用mChoreographer.postFrameCallback或者mUIThreadHandler.post执行一个mRebindRunnable，区别是前者会在下一帧到来的时候肯定会执行该任务，而后者不能保证下一帧可以刷新生效。  
-mRebindRunnable执行的是executeBindings，它是ViewDataBinding的抽象方法，最终实现在ActivityTestBindingImpl里，也就是根据前面的dirtyFlag执行视图的刷新，比如TextView.setText。
+mRebindRunnable执行的是executeBindings，它是ViewDataBinding的抽象方法，最终实现在ActivityTestBindingImpl里，也就是根据前面的dirtyFlag执行视图的刷新，比如TextView.setText。  
+**2. notifyPropertyChanged发生了什么？**  
+不管是ObservableField还是自己在setter手动notifyChange，都是**观察者模式**的运用，通知观察者数据变化。跟databinding的观察者，是在binding.setData的时候，调用updateRegistration注册的。updateRegistration经过一系列调用最终其实就是向ObservableField注册OnPropertyChangeListener。数据改变会调用binding.handleFieldChange，然后调用**requestRebind**，完成对应视图更新。
 ### 14. LiveData原理？
 LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
 先看一下LiveData的常规用法：
