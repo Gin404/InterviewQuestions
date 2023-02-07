@@ -274,7 +274,7 @@ MVC的进化版本，解放Activity，使得Model和View彻底分离。
 3. Presenter: 作为View和Model沟通的桥梁，从Model检索数据返回给View。使得View和Model之间没有耦合。  
 Presenter与具体的View没有关联，而是通过预先定义好的接口进行交互。View只有getter和setter。不允许View和Model直接交互。  
 **MVVM** 
-将Presenter换成ViewModel。将View和Model进行双向绑定。Android中实现ViewModel的工具为DataBinding。  
+将Presenter换成ViewModel。将View和Model进行双向绑定。Android中实现ViewModel的工具为DataBinding、ViewModel。  
 ### 13. Databinding原理？
 如果工程中使用了databinding，则会在编译期生成一下5个文件。假设我们的Activity是TestActivity，layout文件是activity_test.xml。  
 **activity_test.xml**(build/intermediates/incremental/mergeDebugResources/stripped.dir/layout/activity_test.xml)   
@@ -293,7 +293,9 @@ Presenter与具体的View没有关联，而是通过预先定义好的接口进�
 requestRebind会先根据当前的LifeCycleOwner(Activity或者Fragment)的状态，如果至少是START，则继续，否则直接返回。然后判断mPendingRebind，是否有进行中的rebind，如果有直接返回，否则mPendingRebind=true，继续。最终调用mChoreographer.postFrameCallback或者mUIThreadHandler.post执行一个mRebindRunnable，区别是前者会在下一帧到来的时候肯定会执行该任务，而后者不能保证下一帧可以刷新生效。  
 mRebindRunnable执行的是executeBindings，它是ViewDataBinding的抽象方法，最终实现在ActivityTestBindingImpl里，也就是根据前面的dirtyFlag执行视图的刷新，比如TextView.setText。  
 **2. notifyPropertyChanged发生了什么？**  
-不管是ObservableField还是自己在setter手动notifyChange，都是**观察者模式**的运用，通知观察者数据变化。跟databinding的观察者，是在binding.setData的时候，调用updateRegistration注册的。updateRegistration经过一系列调用最终其实就是向ObservableField注册OnPropertyChangeListener。数据改变会调用binding.handleFieldChange，然后调用**requestRebind**，完成对应视图更新。
+不管是ObservableField还是自己在setter手动notifyChange，都是**观察者模式**的运用，通知观察者数据变化。跟databinding的观察者，是在binding.setData的时候，调用updateRegistration注册的。updateRegistration经过一系列调用最终其实就是向ObservableField注册OnPropertyChangeListener。数据改变会调用binding.handleFieldChange，然后调用**requestRebind**，完成对应视图更新。  
+**3. View->Model的绑定怎么做到的？**  
+一般双向绑定发生在editText。在ActivityTestBindingImpl的构造方法里，会把一个有关设置editText的TextWatcher的dirtyFlag位设置为1。后边binding.setData的时候，会根据这个dirtyFlag给editText注册TextWatcher，然后在TextWatcher里更新对应的数据，完成反向绑定。
 ### 14. LiveData原理？
 LiveData **是一个可观察的数据持有者，并且能够感知组件的生命周期。** 也就是说，如果组件处于DESTROY状态，则它不会受到通知。   
 先看一下LiveData的常规用法：
