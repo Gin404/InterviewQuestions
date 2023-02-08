@@ -323,7 +323,8 @@ LiveData **是一个可观察的数据持有者，并且能够感知组件的生
 3. LifecycleBoundObserver里，shouldBeActive方法用来判断当前组件owner是否是STARTED或者RESUMED状态。LifeCycle发生变化，会回调onStateChanged，其中如果state是DESTROYED，则会移除数据的observer。否则往下调用activeStateChanged。  
 4. activeStateChanged里有两个active状态转换的方法供外部覆写。然后调用dispatchingValue。  
 5. dispatchingValue里会调用到considerNotify。considerNotify会进行active状态的再次检查，然后调用传入的**observer的onChange方法**。  
-
+**setValue/postValue流程**：  
+1. set和post的区别
 
 ### 15. ViewModel原理？
 
