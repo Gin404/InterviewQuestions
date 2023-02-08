@@ -333,6 +333,17 @@ LiveData **是一个可观察的数据持有者，并且能够感知组件的生
 1. 当Activity被销毁时，我们可以使用onSaveInstanceState()方法恢复其数据，这种方法仅适用于恢复少量的支持序列化、反序列化的数据，不适用于大量数据，如用户列表或位图。而ViewModel不仅支持大量数据，还不需要序列化、反序列化操作。  
 2. Activity/Fragment（视图控制器）主要用于显示视图数据，如果它们也负责数据库或者网络加载数据等操作，那么一旦逻辑过多，会导致视图控制器臃肿，ViewModel可以更容易，更有效的将视图数据相关逻辑和视图控制器分离开来。  
 3. 视图控制器经常需要一些时间才可能返回的异步调用，视图控制器需要管理这些调用，在合适的时候清理它们，以确保它们的生命周期不会大于自身，避免内存泄漏。而ViewModel恰恰可以避免内存泄漏的发生。
+**ViewModel如何被创建的，在什么时候被销毁？**  
+通常在onCreate的时候：viewModel = ViewModelProvider(this).get(TestViewModel::class.java) 获取viewModel对象。  
+首先第一步获取一个ViewModelProvider对象。它的构造函数里通过传入的Activity/Fragment获取了两个对象，一个是属于Activity/Fragment的ViewModelStore，另一个是ViewModelProviderFactory，用来生成ViewModel实例的工厂类。  
+然后get方法里通过工厂类和传入的class类型，构造ViewModel实例，如果ViewModelStore里有实例，则用已有的，否则新建实例。  
+**ViewModel什么时候被销毁？**  
+在Activity里，通过向LifeCycle注册监听，在DESTROY事件的时候，清空自己的ViewModelStore的所有ViewModel。  
+在Fragment里，Fragment的ViewModel由FragmentManager的FragmentManagerViewModel统一管理，由FragmentStateManager状态机切换的时候触发destroy来销毁。  
+**为什么翻转屏幕，Activity可以保留ViewModel实例，不是走了Destroy流程吗？**  
+Activity有一个方法onRetainNonConfigurationInstance，这个方法由系统在Activity destroy的时候调用，比如翻转屏幕ComponentActivity覆写。覆写后，可以返回想要让系统存储的一个对象，viewModelStore就是在这里存储的。然后getViewModelStore里，会从NonConfigurationInstance里找之前的对象。  
+**Fragment如何共享数据？**  
+Fragment获取ViewModel的时候，传入Activity作为ViewModelProvider的入参就行，实际上共享的是Activity的ViewModel。
 
 ## 源码/三方库
 ### 1. SharedPreferences是不是进程安全的？
