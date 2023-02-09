@@ -9,7 +9,12 @@ java文件需要编译成.class文件才能被jvm加载使用,对象的.class数
 2. 配合使用runtime的自定义注解。  
 3. 动态加载第三方jar包。  
 4. 按需加载类，节省编译和初始化时间。  
-5. Java中一个重要应用场景是动态代理。
+5. Java中一个重要应用场景是动态代理。  
+**反射创建一个对象**  
+主要是如何获取到Class对象。
+1. 通过实例获取：object.getClass()  
+2. 通过已知类型：Object.class  
+3. 通过Class.forName获取全路径指定类名的class，最终会调用到native方法。
 ### 2. 对象加载的过程，属性先加载还是方法先加载?
 ### 3. 垃圾回收机制与jvm内存结构。
 ### 4. Hashmap/SparceArray/, ConcurrentHashMap实现。
