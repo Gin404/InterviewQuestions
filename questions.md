@@ -20,9 +20,17 @@ java文件需要编译成.class文件才能被jvm加载使用,对象的.class数
 类的生命周期包括：**加载，链接，初始化，使用，卸载**。其中链接包括**验证**，**准备**和**解析**。  
 加载：查找并加载class文件。  
 链接-验证：确保被导入类型的正确性。  
-链接-准备：为类的静态字段分配字段，并用默认值初始化这些字段。  
+链接-准备：**为类的静态字段分配字段，并用默认值初始化这些字段**。  
 链接-解析：虚拟机常量池内的符号引用替换为直接引用。  
-初始化
+初始化：**将类变量初始化为正确初始值**。  
+其中，加载阶段是有Java虚拟机外部的**类加载子系统**完成的。 类加载子系统通过两类类加载器查找和加载Class文件：**系统加载器**和**自定义加载器**。  
+**系统加载器**  
+Bootstrap ClassLoader（引导类加载器）：用C/C++代码实现的类加载器，用来加载JDK的核心库，比如java.lang、java.ui。加载路径：$JAVA_HOME/jre/lib目录或者-Xbootclasspath指定的目录。  
+Extensions ClassLoader（拓展类加载器）：用于加载java拓展类，提供除系统类之外的额外功能。加载目录：$JAVA_HOME/jre/lib/ext或者系统属性java.ext.dir所指定的目录。  
+Application ClassLoader（应用程序类加载器）：又称System ClassLoader，可以通过ClassLoader的getSystemClassLoader方法获取到。加载路径：当前应用程序classpath目录或系统属性java.class.path指定目录。  
+**自定义加载器**  
+通过继承java.lang.ClassLoader的方式实现自己的类加载器。
+
 ### 3. 垃圾回收机制与jvm内存结构。
 ### 4. Hashmap/SparceArray/, ConcurrentHashMap实现。
 1.SparceArray
