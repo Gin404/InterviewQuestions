@@ -31,8 +31,14 @@ Application ClassLoader（应用程序类加载器）：又称System ClassLoader
 **自定义加载器**  
 通过继承java.lang.ClassLoader的方式实现自己的类加载器。
 
-### 3. 垃圾回收机制与jvm内存结构。
-### 4. Hashmap/SparceArray/, ConcurrentHashMap实现。
+### 3. 对象的创建？
+对象的创建，也就是虚拟机执行new Object()的时候有哪些过程。  
+1. 虚拟机首先会检查常量池中是否有这个类的符号引用，并且检查这个符号引用代表的类是否已经被加载、链接、初始化。  
+2. 类加载完成后，会在java堆分配一块内存给对象。内存的分配方式根据所采用的垃圾收集器是否带有压缩整理功能有关。
+	a. 指针碰撞：如果堆内存是完整的，也就是用过的内存放一边，空闲内存放一边，则在位于二者中间的指针指示器向空闲一侧移动一段与对象大小一样的内存，完成分配。  
+	b. 空闲列表：如果堆内存是不完整的，
+### 4. 垃圾回收机制与jvm内存结构。
+### 5. Hashmap/SparceArray/, ConcurrentHashMap实现。
 1.SparceArray
 SparseArray是Android中一种特有的数据结构,用来替代HashMap的.初始化时默认容量为10它里面有两个数组,一个是int[]数组存放key,一个是Object[]数组用来存放value.它的key只能为int.在put时会根据传入的key进行二分查找找到合适的插入位置,如果当前位置有值或者是DELETED节点,就直接覆盖,否则就需要拷贝该位置后面的数据全部后移一位,空出一个位置让其插入.如果数组满了但是还有DELETED节点,就需要调用gc方法,gc方法所做的就是把DELETED节点后面的数前移,压缩存储(把有数据的位置全部置顶).数组满了没有DELETED节点,就需要扩容.
 
@@ -45,13 +51,13 @@ get方法很简单,二分查找获取key对应的索引index,返回values[index]
 除了SparseArray,Android还提供了SparseIntArray(int:int),SparseBooleanArray(int:boolean),SparseLongArray(int:long)等,其实就是把对应的value换成基本数据类型.
 
 
-### 5. volatile的作用，在哪儿用到？
-### 6. AtomicBoolean的实现原理？什么CAS？
-### 7. 乐观锁，悲观锁？乐观锁CAS，ABA？
-### 8. ReentrantLock synchronize volitle的区别？
-### 9. 多线程协同？
-### 10. 线程池？
-### 11. sleep和wait的区别？
+### 6. volatile的作用，在哪儿用到？
+### 7. AtomicBoolean的实现原理？什么CAS？
+### 8. 乐观锁，悲观锁？乐观锁CAS，ABA？
+### 9. ReentrantLock synchronize volitle的区别？
+### 10. 多线程协同？
+### 11. 线程池？
+### 12. sleep和wait的区别？
 
 ## 设计模式 参考同级目录Design pattern.md
 ### 1. android常用的设计模式？
