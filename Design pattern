@@ -1,0 +1,176 @@
+### 设计模式
+## 一、六大原则
+单一职责原则:不要让一个类承担过多职责。
+开放封闭原则:类、模块、函数是可扩展的，但不可以修改。
+里式替换原则:所有引用基类的地方必须能透明的使用其子类对象。是实现开放封闭原则的重要方式之一。
+依赖倒置原则:高层模块不应该依赖低层模块，两者都应该依赖抽象。抽象不应该依赖细节，细节应该依赖抽象。抽象就是接口或者抽象类，细节就是实现类。
+迪米特原则:一个软件实体要尽可能少的与其他实体发生相互作用。简而言之就是减少耦合。
+接口隔离原则:一个类对另一个类的依赖应该建立在最小的接口上。
+
+二、设计模式分类
+创建型设计模式（5种）:单例模式、工厂方法模式、抽象工厂模式、建造者模式、原型模式。
+结构型设计模式（7种）:适配器模式、装饰模式、代理模式、外观模式、桥接模式、组合模式、享元模式。
+行为型设计模式（11种）:策略模式、模板方法模式、观察者模式、迭代器模式、责任链模式、命令模式、备忘录模式、状态模式、访问者模式、中介者模式、解释器模式。
+
+三、创建型设计模式
+单例模式
+保证一个类只有一个实例，并提供一个访问它的全局访问点。
+
+饿汉模式：类加载后就会初始化，不会有多线程同步问题，但如果始终没有用到实例会造成内存浪费。
+懒汉模式（线程不安全）：get的时候初始化，多线程不安全。
+懒汉模式（线程安全）：get方法加synchronized关键字。但大部分时间不需要同步，会有开销，不推荐。
+双重校验模式（DCL）：对象加volitale关键字，保证对象可见性。两次判空。synchronized外部判空，防止不必要的同步。内部判空，防止重复创建。
+静态内部类模式：单例由静态内部类持有。第一次调用get的时候才会加载静态内部类，借用类加载机制保证线程安全。
+枚举单例：把单例类定义为枚举。简单，保证线程安全和反序列化，但是可读性不高。
+
+简单工厂模式
+定义：由一个工厂对象决定创建哪种产品实例。
+优点：用户根据参数从工厂对象获取实例，而不是直接实例化，避免耦合。
+缺点：可实例化的对象在编译器已经确定，如果需要新增类型，就需要修改工厂类代码，违反了开放封闭原则。
+IProduct: 产品抽象类。
+Product: 产品实现类。
+Factory: 提供一个方法用于创建具体产品。
+
+工厂方法模式
+定义：定义一个创建对象的接口，由子类决定实例化哪个类。工厂方法是一个类的实例化延迟到子类。
+优点：不违背开放封闭原则，只扩展不修改。
+
+IProduct: 产品抽象类。
+Product: 产品实现类。
+IFactory: 抽象工厂类。
+Factory: 工厂实现类，实现具体生成product实例的方法。
+
+
+抽象工厂模式
+和工厂方法模式的区别是，抽象工厂模式有多个产品，工厂可以生产产品族。
+
+建造者模式
+定义：将一个复杂对象的构建和他的表示分离，使得同样的构建过程可以创建不同的表示。
+优点：builder模式每一部分组装的时候可以添加建造细节，建造者可以不知道建造的内部细节。可以使创建对象的复杂算法独立于对象的组成部分。
+
+四、结构型设计模式
+代理模式
+定义：为其他对象提供一种代理以控制对这个对象的访问。
+Subject: 抽象主题类。声明真实主题与代理的共同接口方法。
+RealSubject: 真实主题类，代理类代理的真实主题，被代理者。
+Proxy: 代理类，持有对真实主题的引用。在其所实现的接口方法中调用真实主题类中相应的接口方法。
+
+静态代理：在代码运行前就存在了代理类。
+动态代理：在java的java.lang.reflect包下提供了一个Proxy类和一个InvocationHandler接口，通过这个类和这个接口可以生成JDK动态代理类和动态代理对象。
+public class RenterInvocationHandler<T> implements InvocationHandler{
+	//被代理类的对象
+	private T target;
+	
+	public RenterInvocationHandler(T target){
+		this.target = target;
+	}
+
+	/**
+     * proxy:代表动态代理对象
+     * method：代表正在执行的方法
+     * args：代表调用目标方法时传入的实参
+     */
+	@Override
+	public Object invoke(Object proxy, Method method, Object[] args)
+			throws Throwable {
+		//代理过程中插入其他操作
+		System.out.println("租客和中介交流");
+		Object result = method.invoke(target, args);
+		return result;
+	}
+
+}
+
+public class ProxyTest {
+
+	public static void main(String[] args) {
+
+		//创建被代理的实例对象
+		Person renter = new Renter();
+		//创建InvocationHandler对象
+		InvocationHandler renterHandler = new RenterInvocationHandler<Person>(renter);
+		
+		
+		//创建代理对象,代理对象的每个执行方法都会替换执行Invocation中的invoke方法
+		Person renterProxy = (Person)Proxy.newProxyInstance(Person.class.getClassLoader(),new Class<?>[]{Person.class}, renterHandler);
+		renterProxy.rentHouse();
+		
+		//也可以使用下面的方式创建代理类对象，Proxy.newProxyInstance其实就是对下面代码的封装
+		/*try {
+			//使用Proxy类的getProxyClass静态方法生成一个动态代理类renterProxy 
+			Class<?> renterProxyClass = Proxy.getProxyClass(Person.class.getClassLoader(), new Class<?>[]{Person.class});
+			//获取代理类renterProxy的构造器，参数为InvocationHandler
+			Constructor<?> constructor = renterProxyClass.getConstructor(InvocationHandler.class);
+			//使用构造器创建一个代理类实例对象
+			Person renterProxy = (Person)constructor.newInstance(renterHandler);
+			renterProxy.rentHouse();
+			//
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+	}
+
+}
+
+代理模式优点：真实主题类仅仅实现业务逻辑，其他由代理类完成；真实主题类会发生变化，但是由于实现了公共接口，所以代理类能一直使用。
+
+装饰模式
+定义：动态地给一个对象添加一些额外的职责，就新增功能来讲，装饰模式比生成子类更加灵活。
+Component: 抽象组件，接口或抽象类。被装饰的最原始对象。
+ConcreteComponent: 组件具体实现类。被真正装饰的对象。
+Decorator: 抽象装饰者。用于扩展Component的功能，属性中必然有一个private的Component存在。
+
+优点：
+1. 通过组合而非继承的方式动态扩展一个对象的功能。有效避免了使用继承的方式带来的灵活性差，子类无限扩张的问题。
+2. 具体组件和修饰类可以独立变化，复合开放封闭原则。
+缺点：
+所有对象均继承自Component，如果Component内部发生变化，则会影响所有。
+
+和代理模式的区别：
+代理模式注重被代理者的隐藏，即外部不能直接使用被代理者的功能。甚至代理者内部是否使用被代理者，如何实现也是隐藏的。
+装饰模式注重功能的加强，被装饰者依然是对外暴露的。
+
+外观模式
+定义：要求一个子系统的外部与内部的通信必须通过一个统一的对象进行。此模式提供一个高层的接口，使得子系统更加易用。
+Facade: 外观类，知道哪些子系统负责处理请求，将客户端的请求代理给适当的子系统。
+SubSystem: 子系统类，可以有一个或者多个。实现功能，处理外观类指派的任务，注意子系统类不含有外观类的引用。
+
+缺点：不符合开放封闭原则，如果业务变更，可能要直接修改外观类。
+享元模式
+定义：使用共享对象有效支持大量细粒度的对象。
+Flyweight: 抽象享元角色。同时定义出对象的外部状态和内部状态的接口和实现。
+ConcreteFlyweight: 具体享元角色。实现业务。
+FlyweightFactory: 享元工厂，负责管理对象池和创建享元对象。通常内部维护一个map来维护对象的缓存。
+
+适用场景：系统中存在大量相似对象。需要缓冲池。
+
+五、行为型设计模式
+策略模式
+定义：定义一系列算法，把每一个算法封装起来，并且使他们可以相互替换。策略模式使得算法可独立于使用它的客户而独立变化。
+
+Context: 上下文角色。用来操作策略的上下文环境。起到承上启下的作用。屏蔽高层模块对策略、算法的直接调用。
+Strategy: 抽象策略角色，策略、算法的抽象，通常为接口。
+ConcreteStrategy: 具体的策略实现。
+
+使用场景：
+对客户隐藏具体策略实现细节，彼此完全独立。
+针对同一类型问题的多种处理方式，仅具体行为有差别时。
+在一个类中定义了很多行为，用Strategy类替代条件分支。
+
+模板方法模式
+定义：定义一个操作中的算法框架，而将一些步骤延迟到子类中，使得子类不改变一个算法的结构即可重新定义算法的某些特定步骤。
+
+AbstractClass: 抽象类，定义一套算法框架。比如定义抽象方法step1、step2、step3，和一个调用方法run调用strep123。
+ConcreteClass: 实现AbstractClass的抽象方法。
+
+观察者模式
+定义：定义对象间一种一对多的依赖关系。每当一个对象改变时，则所有依赖于它的对象都会收到通知并被自动更新。
+Subject: 抽象主题（被观察者）。抽象主题角色把所有观察者对象保存在一个集合中，每个主题可以有任意数量的观察者。抽象主题提供一个接口，可以增加和删除观察者对象。
+ConcreteSubject: 具体主题（具体被观察者）。该角色将有关状态存入具体观察者对象。在具体主题的内部状态发生改变时，通知所有注册的观察者。
+Observer: 抽象观察者。定义了一个更新接口，使得在得到主题变更时自己能收到通知。
+ConcreteObserver: 具体观察者。
+
+使用场景：
+事件多级触发场景。
+跨系统信息交换场景。
