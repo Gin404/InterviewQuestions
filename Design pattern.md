@@ -56,7 +56,8 @@ RealSubject: 真实主题类，代理类代理的真实主题，被代理者。
 Proxy: 代理类，持有对真实主题的引用。在其所实现的接口方法中调用真实主题类中相应的接口方法。  
 
 静态代理：在代码运行前就存在了代理类。  
-动态代理：在java的java.lang.reflect包下提供了一个Proxy类和一个InvocationHandler接口，通过这个类和这个接口可以生成JDK动态代理类和动态代理对象。  
+动态代理：在java的java.lang.reflect包下提供了一个Proxy类和一个InvocationHandler接口，通过这个类和这个接口可以生成JDK动态代理类和动态代理对象。 
+
 public class RenterInvocationHandler<T> implements InvocationHandler{
 	//被代理类的对象
 	private T target;
@@ -82,7 +83,6 @@ public class RenterInvocationHandler<T> implements InvocationHandler{
 }  
 
 public class ProxyTest {
-
 	public static void main(String[] args) {
 
 		//创建被代理的实例对象
@@ -110,8 +110,7 @@ public class ProxyTest {
 			e.printStackTrace();
 		}*/
 	}
-
-}  
+}
 
 代理模式优点：真实主题类仅仅实现业务逻辑，其他由代理类完成；真实主题类会发生变化，但是由于实现了公共接口，所以代理类能一直使用。  
 
