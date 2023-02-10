@@ -38,10 +38,8 @@ get方法很简单,二分查找获取key对应的索引index,返回values[index]
 ### 10. 线程池？
 ### 11. sleep和wait的区别？
 
-## 设计模式
-### 1. 设计原则？
-### 2. 分类？
-### 3. android常用的设计模式？
+## 设计模式 参考同级目录Design pattern.md
+### 1. android常用的设计模式？
 
 ## 计算机基础
 ### 1. http与https有什么区别?
