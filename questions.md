@@ -81,8 +81,13 @@ get方法很简单,二分查找获取key对应的索引index,返回values[index]
 
 
 ### 7. volatile的作用，在哪儿用到？
-volatile关键字为实例域的同步访问提供了免锁机制。
+volatile关键字为实例域的同步访问提供了免锁机制。volitale保证可见性（一个线程对值的修改立刻对其他线程可见）和有序性（禁止指令重排序，操作volitale变量之前的操作肯定在之后的操作前完成了），但是不保证原子性（比如自增操作）。  
+volitale某些情况下能替代syncronized，但是涉及到自增、自减，或者变量包含在其他变量的不变式中就不能用这个关键字（setUpper setLower的例子）。  
+**用处**  
+1. 状态标志：多线程共享的标志位。（体现可见性）
+2. 单例的DCL双重校验锁。（体现有序性，如果不加，对象的引用关联、构造函数可能重排序）
 ### 8. AtomicBoolean的实现原理？什么CAS？
+
 ### 9. 乐观锁，悲观锁？乐观锁CAS，ABA？
 ### 10. ReentrantLock synchronize volitle的区别？
 ### 11. 多线程协同？
