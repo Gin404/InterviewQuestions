@@ -81,6 +81,7 @@ get方法很简单,二分查找获取key对应的索引index,返回values[index]
 
 
 ### 7. volatile的作用，在哪儿用到？
+volatile关键字为实例域的同步访问提供了免锁机制。
 ### 8. AtomicBoolean的实现原理？什么CAS？
 ### 9. 乐观锁，悲观锁？乐观锁CAS，ABA？
 ### 10. ReentrantLock synchronize volitle的区别？
