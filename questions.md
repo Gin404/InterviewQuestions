@@ -103,9 +103,9 @@ ReentrantLock和synchronized都是悲观锁。二者区别如下：
 4. ReentrentLock可以是公平也可以是不公平的，默认不公平，syncrhonized是不公平的。  
 5. ReentrentLock可以通过Condition绑定条件。通过condition来await和signall，和syncronized的await和notifyAll一样。  
 6. ReentrentLock发生异常，如果没有unlock，很可能出现死锁，所以一定要由finally模块，进行对锁的释放，Sychronized发生异常会自动释放线程占用的锁。  
-### 11. 多线程协同？
+
+### 11. sleep和wait的区别？
 ### 12. 线程池？
-### 13. sleep和wait的区别？
 
 ## 设计模式 参考同级目录Design pattern.md
 ### 1. android常用的设计模式？
