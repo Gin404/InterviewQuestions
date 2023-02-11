@@ -86,12 +86,23 @@ volitale某些情况下能替代syncronized，但是涉及到自增、自减，�
 **用处**  
 1. 状态标志：多线程共享的标志位。（体现可见性）
 2. 单例的DCL双重校验锁。（体现有序性，如果不加，对象的引用关联、构造函数可能重排序）
-### 8. AtomicBoolean的实现原理？什么CAS？
+### 8. AtomicBoolean的实现原理？什么CAS？ABA问题？
 CAS是Compare and Swap的缩写。一种乐观锁机制，假如要更新对变量a=0加1，则线程从主存中拷贝一个预期值a=0到自己的工作内存，然后+1得到新值1，再用预期值和主存中的当前值比较，如果想到，说明在此期间主存值没有发生变化，可以将新值覆盖写入。如果发生变化，则放弃此次更新，自旋重复CAS操作。  
-Atomic系列 
+Atomic系列都借助了jdk的工具类Unsafe实现了CAS操作，保证变量更新操作的原子性。  
+CAS有个ABA的问题，那就是比较的时候，如果预期值和当前值相等，不代表当前值没有被更新，而是有可能更新了后等于原值。解决方法是给变量加上版本号：A-B-A  ->  A1-B2-A3。
+### 9. 乐观锁，悲观锁？乐观锁？
+乐观锁主要就是指CAS，乐观锁时常抱有乐观的想法，即默认读多写少，且遇到并发写入的可能性低。所以不会直接上锁，而是在每次更新的时候，比较版本号，如果版本号一致，则更新，如果不一致，则失败进行重读。  
+悲观锁和乐观锁正好相反。悲观锁默认写入操作多，而且会经常遇见并发写入的操作，所以每次读写数据时都会上锁。每次修改和读数据时，都需要拿到锁才可以。常见的悲观锁实现有Synchronized 和 ReentrentLock。  
 
-### 9. 乐观锁，悲观锁？乐观锁CAS，ABA？
-### 10. ReentrantLock synchronize volitle的区别？
+### 10. ReentrantLock synchronized volitle的区别？
+volatile前面说过了，某些情况可以代替锁。  
+ReentrantLock和synchronized都是悲观锁。二者区别如下：  
+1. ReentrentLock显示的获得，释放锁，而Sychronized隐式的获得，释放锁。  
+2. ReentrentLock可响应中断锁，sychronized不可以。ReentrentLock加锁有一个lockInterruptly方法，在同步块里可以catch中断。sychronized需要自己判断中断标志位.  
+3. ReentrentLock是API级别的，Sychronized是JVM级别的。  
+4. ReentrentLock可以是公平也可以是不公平的，默认不公平，syncrhonized是不公平的。  
+5. ReentrentLock可以通过Condition绑定条件。通过condition来await和signall，和syncronized的await和notifyAll一样。  
+6. ReentrentLock发生异常，如果没有unlock，很可能出现死锁，所以一定要由finally模块，进行对锁的释放，Sychronized发生异常会自动释放线程占用的锁。  
 ### 11. 多线程协同？
 ### 12. 线程池？
 ### 13. sleep和wait的区别？
