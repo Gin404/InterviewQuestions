@@ -46,8 +46,15 @@ Application ClassLoader（应用程序类加载器）：又称System ClassLoader
 5. 设置对象的对象头。  
 将对象所属的类、hashcode、GC分代年龄等数据存储在对象的对象头中。  
 6. 执行init方法，初始化对象的成员变量，调用类的构造方法。
-### 4. 垃圾回收机制与jvm内存结构。
-### 5. Hashmap/SparceArray/, ConcurrentHashMap实现。
+### 4. jvm内存结构。（运行时数据区域）
+1. 程序计数器：也就是PC寄存器，**线程私有**。用来保存下一条需要执行的字节码的地址。如果不是Native方法，那存储的就是正在执行的字节码的地址；如果是Native方法，那就是Undefined。唯一没有规定任何OutOfMemoryErro情况的数据区域。 
+2. Java虚拟机栈：**线程私有**。用来存储线程中Java方法调用的状态，包括局部变量、参数、返回值以及运算中间结果等。当中有多个栈帧，调用一个方法就会压入一个栈帧。线程请求的栈容量超过最大容量会抛出StackOverflow；虚拟机栈可以动态扩展，但是如果扩展没有足够内存会抛出OutOfMemoryError。  
+3. 本地方法栈：与Java虚拟机栈类似，只不过是支持Native语言的，比如C/C++。  
+4. Java堆：**线程共享**。用来存放对象实例。对象由垃圾收集器管理，无法显示的销毁。如果实例分配没有足够内存或者无法进行扩展时，会抛出OutOfMemoryError。  
+5. 方法区：**线程共享**。用来存储已经被虚拟机加载的类结构信息，包括运行时常量池、字段、方法信息、静态变量等数据。同样内存不够时会抛出OutOfMemoryError异常。  
+6. 运行时常量池：方法区的一部分。Class文件里除了类的版本、接口、字段和方法等信息，还包含常量池，用来存放编译时期生产的字面量和符号引用。这些内容会在类加载后存放在方法区的运行时程立池中，也就是将这些变为具体的直接引用。
+### 5. 垃圾回收机制。
+### 6. Hashmap/SparceArray/, ConcurrentHashMap实现。
 1.SparceArray
 SparseArray是Android中一种特有的数据结构,用来替代HashMap的.初始化时默认容量为10它里面有两个数组,一个是int[]数组存放key,一个是Object[]数组用来存放value.它的key只能为int.在put时会根据传入的key进行二分查找找到合适的插入位置,如果当前位置有值或者是DELETED节点,就直接覆盖,否则就需要拷贝该位置后面的数据全部后移一位,空出一个位置让其插入.如果数组满了但是还有DELETED节点,就需要调用gc方法,gc方法所做的就是把DELETED节点后面的数前移,压缩存储(把有数据的位置全部置顶).数组满了没有DELETED节点,就需要扩容.
 
@@ -60,13 +67,13 @@ get方法很简单,二分查找获取key对应的索引index,返回values[index]
 除了SparseArray,Android还提供了SparseIntArray(int:int),SparseBooleanArray(int:boolean),SparseLongArray(int:long)等,其实就是把对应的value换成基本数据类型.
 
 
-### 6. volatile的作用，在哪儿用到？
-### 7. AtomicBoolean的实现原理？什么CAS？
-### 8. 乐观锁，悲观锁？乐观锁CAS，ABA？
-### 9. ReentrantLock synchronize volitle的区别？
-### 10. 多线程协同？
-### 11. 线程池？
-### 12. sleep和wait的区别？
+### 7. volatile的作用，在哪儿用到？
+### 8. AtomicBoolean的实现原理？什么CAS？
+### 9. 乐观锁，悲观锁？乐观锁CAS，ABA？
+### 10. ReentrantLock synchronize volitle的区别？
+### 11. 多线程协同？
+### 12. 线程池？
+### 13. sleep和wait的区别？
 
 ## 设计模式 参考同级目录Design pattern.md
 ### 1. android常用的设计模式？
