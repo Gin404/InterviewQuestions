@@ -135,7 +135,7 @@ core pool > queue > not core pool
 **FixedThreadPool**: 只有核心线程，且数量固定。采用LinkedBlockingQueue，容量设置为Integer.MAX_VALUE。  
 **CachedThreadPool**: 没有核心线程，最大线程数位MAX_VALUE，keepAliveTime位60s。采用SynchronousQueue。也就是每次提交新任务，都立即会有线程去处理。适合大量需要立即执行且耗时少的任务。  
 **SingleThreadExecutor**: 只有一个核心线程，没有非核心线程。采用LinkedBlockingQueue。确保任务在单个线程中按顺序执行。  
-**ScheduleThreadPool**: 自定义核心线程数，最大线程数为MAX_VALUE。使用DelayedWorkQueue。用于延时或者周期执行任务。
+**ScheduleThreadPool**: 自定义核心线程数，最大线程数为MAX_VALUE。使用DelayedWorkQueue。用于延时或者周期执行任务。  
 ## 设计模式 参考同级目录Design pattern.md
 ### 1. android常用的设计模式？
 
