@@ -105,8 +105,37 @@ ReentrantLock和synchronized都是悲观锁。二者区别如下：
 6. ReentrentLock发生异常，如果没有unlock，很可能出现死锁，所以一定要由finally模块，进行对锁的释放，Sychronized发生异常会自动释放线程占用的锁。  
 
 ### 11. sleep和wait的区别？
+1. sleep是Thread的静态方法，wait是Object的实例方法。  
+2. wait涉及到锁机制，必需在synchronized代码块里执行；sleep可以用在任何地方，不会释放锁，只是使当前线程休眠，会让出cpu资源。  
+3. wait在没有设置时限的情况下，需要被notify/notifyAll唤醒。sleep到指定时间自动唤醒。
 ### 12. 线程池？
-
+线程池用到阻塞队列。阻塞队列常用于生产者和消费者的场景。    
+队列中没有数据的情况下，消费者的所有线程会被挂起。  
+队列数据满的情况下，生产者的所有线程会被挂起。  
+**常见阻塞队列种类**  
+ArrayBlockingQueue: 由数组结构组成的有界阻塞队列，按照FIFO的原则对元素进行排列。默认不保证线程公平的访问。也就是先阻塞的不一定先访问。  
+LinkedBlockingQueue: 由链表结构组成的有界阻塞队列，同样是FIFO。除了数据结构实现不同，LinkedBlockingQueue的生产和消费使用两把锁来进行的，而ArrayBlockingQueue是一把锁。  
+PriorityBlockingQueue: 支持优先级的无界阻塞队列。默认情况下按照自然顺序升序排列，可以自己实现compareTo或者Comparator。  
+DelayQueue: 支持延时获取元素的无界阻塞队列。队列使用PriorityQueue实现，队列中的元素必须实现Delayed接口指定元素到期时间。只有元素到期后才能取走。  
+SynchronousQueue: 一个不支持存储元素的阻塞队列。每个插入操作必须等待另一个线程的移出操作。反之亦然。严格来说不是一种容器。  
+LinkedTransferQueue: 一个链表结构组成的无界阻塞队列。实现了一个接口TransferQueue。一言概之，transfer的作用就是如果有等待的消费者线程，那就把元素直接给消费者线程，否则放入队列尾部并且进入等待阻塞状态。  
+LinkedBlockingDeque: 一个链表结构的双向阻塞队列。支持双端插入和取出元素。
+**线程池** 
+创建线程池用ThreadPoolExecutor。它的构造函数参数如下：  
+**corePoolSize**: 核心线程数。默认线程池是空的，如果当前线程数小于corePoolSize，则创建新的线程；如果大于corePoolSize，则不创建新线程。  
+**maximumPoolSize**: 线程池允许创建的最大线程数。如果任务队列满了，并且线程数小于maximumPoolSize，则仍会创建新的线程。  
+**keepAliveTime**: 非核心线程超时时间。超过这个时间，非核心线程会被回收。  
+**TIMEUnit**: keepAliveTime的单位。  
+**ThreadFactory**: 线程工厂。可以用线程工厂给每个创建的线程设置名字。一般不需要设置此参数。  
+**RejectExecutionHandler**: 饱和策略。当前任务队列和线程池都满的时候应对策略。默认是AbortPolicy，无法处理新任务，并且抛出异常。除此之外还有CallerRunsPolicy、DiscardPolicy、DiscardOldestPolicy。  
+**线程池处理逻辑**  
+提交任务->没有达到核心线程数就创建线程执行任务->队列没满就放在队列里->没有达到最大线程数就创建线程执行任务->饱和策略  
+core pool > queue > not core pool 
+**常见线程池种类**  
+**FixedThreadPool**: 只有核心线程，且数量固定。采用LinkedBlockingQueue，容量设置为Integer.MAX_VALUE。  
+**CachedThreadPool**: 没有核心线程，最大线程数位MAX_VALUE，keepAliveTime位60s。采用SynchronousQueue。也就是每次提交新任务，都立即会有线程去处理。适合大量需要立即执行且耗时少的任务。  
+**SingleThreadExecutor**: 只有一个核心线程，没有非核心线程。采用LinkedBlockingQueue。确保任务在单个线程中按顺序执行。  
+**ScheduleThreadPool**: 自定义核心线程数，最大线程数为MAX_VALUE。使用DelayedWorkQueue。用于延时或者周期执行任务。
 ## 设计模式 参考同级目录Design pattern.md
 ### 1. android常用的设计模式？
 
