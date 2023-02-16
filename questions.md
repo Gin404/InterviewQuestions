@@ -67,18 +67,64 @@ GC的两个工作：内存的划分和分配；垃圾回收。
 2. 复制算法：将内存分为两块，每次对一块进行回收，将存活对象复制到另一块。代价是可用内存少一半，适合存活对象少的情况。被广泛用于新生代（因为绝大多数对象生命周期短，且存活于新生代中）。  
 3. 标记-压缩算法：老年代对象存活时间久，复制算法效率较低。标记压缩算法在标记后，将可存活对象复制压缩到内存的一端，然后再清除边界外的内存。  
 4. 分代收集算法：基于前面对新生代老年代的划分，分为Minor GC和Full GC。Minor GC针对新生代，是将Eden 和 From Survivor中存活的对象，复制到To Survivor中。有两种情况对象会晋升到老年代：存活对象分代年龄超过阈值（经历过对此Minor GC）和 To Survivor空间满了。复制完后，Eden和From就都是可回收的对象。然后From和To的两块空间会交换角色。Full GC就是用前面说的标记压缩法进行回收，耗时较长，收集频率比较低。
-### 6. Hashmap/SparceArray/, ConcurrentHashMap实现。
-1.SparceArray
+### 6. Hashmap/SparseArray/ConcurrentHashMap实现。
+**1.SparseArray**  
 SparseArray是Android中一种特有的数据结构,用来替代HashMap的.初始化时默认容量为10它里面有两个数组,一个是int[]数组存放key,一个是Object[]数组用来存放value.它的key只能为int.在put时会根据传入的key进行二分查找找到合适的插入位置,如果当前位置有值或者是DELETED节点,就直接覆盖,否则就需要拷贝该位置后面的数据全部后移一位,空出一个位置让其插入.如果数组满了但是还有DELETED节点,就需要调用gc方法,gc方法所做的就是把DELETED节点后面的数前移,压缩存储(把有数据的位置全部置顶).数组满了没有DELETED节点,就需要扩容.
-
 调用remove时,并不会直接把key从int[]数组里面删掉,而是把当前key指向的value设置成DELETED节点,这样做是为了减少int[] 数组的结构调整,结构调整就意味着数据拷贝.但是当我们调用keyAt/valueAt获取索引时,如果有DELETED节点旧必须得调用gc,不然获得的index是不对的.延迟回收的好处适合频繁删除和插入来回执行的场景,性能很好.
-
 get方法很简单,二分查找获取key对应的索引index,返回values[index]即可.
-
 可以看到SparseArray比HashMap少了基本数据的自动装箱操作,而且不需要额外的结构体,单个元素存储成本低,在数据量小的情况下,随机访问的效率很高.但是缺点也显而易见,就是增删的效率比较低,在数据量比较大的时候,调用gc拷贝数组成本巨大.
-
 除了SparseArray,Android还提供了SparseIntArray(int:int),SparseBooleanArray(int:boolean),SparseLongArray(int:long)等,其实就是把对应的value换成基本数据类型.
+**2. HashMap**  
+**基本结构**：  
+jdk1.7 数组+链表。数组下标为根据key值算出的哈希值，数组元素为链表头，链表元素为KV键值对。  
+jdk1.8 数组+链表+红黑树。和jdk1.7的区别是，链表长度**超过8**的时候，链表结构会被转为红黑树。查询时间复杂度是O(log(n))，优于链表的O(n)。  
 
+**jdk1.7流程：**  
+**初始化**：  
+数组初始长度：16，数组扩容必须乘2^n。  
+默认负载因子：0.75，也就是数组75%的位置满了之后，会进行扩容。  
+**put**：  
+1. 判断数组table是否为null或者长度n是0，如果是，则执行resize进行初始化。
+2. 根据hash%n得到index，如果当前index上没有节点，则新建节点。  
+3. 如果存在节点，那就是hash冲突，
+    a. 遍历各节点，有相同的key值，则返回旧值，更新新值。  
+    b. 没有相同的节点，新建节点插入到对应链表尾部。  
+    c. 在遍历链表的过程中，如果链表长度大于8，则转换链表为红黑树。
+4. ++size，如果size大于扩容阈值，则resize。  
+5. 返回为null，那就是插入，不是更新。  
+**get**：  
+比较简单，就是遍历链表和红黑树找到对应key的节点并返回value，否则返回null。  
+**为啥长度一定要是2^n?**  
+计算index的方式为hash&(len-1)，位运算计算效率高。换成二进制，len-1永远是1111...111，所以相当于直接取hash最后几位作为Index，分布比较均匀。而位运算下的十进制会有分布不均匀的情况，某种index会永远用不到。  
+**线程安全问题！！！**  
+首先了解一下resize的过程。  
+当数组长度超过Capacity*LoadFactor的时候，会进行扩容。  
+    a. 先创建新的数组。  
+    b. 然后遍历原数组，把Entry重新哈希到新数组。  
+**多个线程，同时扩容的过程中，有可能产生环形链表！！！** https://juejin.cn/post/7139320304920166430#heading-3  
+**此后，进行get操作，会造成死循环！！！**  
+
+**jdk1.8**：  
+循环链表的情况，已经解决了。jdk有别的问题。  
+**put方法会导致元素丢失**  
+多线程put，在p.next链表下一个元素新建赋值的时候，有覆盖的情况。  
+**put中要rehash扩容的时候，get可能返回null** 
+线程1新建table并赋值给成员参数的时候，线程2get就会使用这个新的table，返回的就是null了。
+
+**3. ConcurrentHashMap**  
+**jdk1.7版本**  
+分段锁机制。每个ConcurrentHashMap维护一组Segment，每个Segment类似一个HashMap。每次put操作给自己的Segment加锁就行。put和rehash都是安全的。  
+**jdk1.8版本**  
+和1.7不同，没用Segment，而是和HashMap类似，用了一个Node数组来存储元素，也是数组+链表结构。  
+大量运用了Unsafe类保证线程安全。  
+**put**  
+如果对应的key的index上没有元素，则用Unsafe的CAS操作，新建节点。  
+如果发生了hash冲突，则以链表头为锁，synchronized。  
+**扩容**  
+新增一个成员变量nextTable，扩容后新的空的Node数组先赋值给这个成员变量，rehash都是针对这个nextTable完全不影响原来的table。  
+rehash的过程会用链表头结点作为锁加锁，此时不能对这个链表进行put。  
+在整个过程中，共享变量的存储和读取全部通过volatile或CAS的方式，保证了线程安全。  
+完成扩容后，再将nextTable赋值给table。
 
 ### 7. volatile的作用，在哪儿用到？
 volatile关键字为实例域的同步访问提供了免锁机制。volitale保证可见性（一个线程对值的修改立刻对其他线程可见）和有序性（禁止指令重排序，操作volitale变量之前的操作肯定在之后的操作前完成了），但是不保证原子性（比如自增操作）。  
@@ -222,8 +268,59 @@ HTTPS：是以安全为目标的HTTP通道，简单讲是HTTP的安全版，即H
 ### 4. HandlerThread？
 一个自带handler机制的线程，用于串行执行耗时任务。  
 关键点在于run方法中mLooper = Looper.myLooper赋值的过程会加锁。getLooper方法中也会加锁，如果mLooper为空，则一直wait，直到Looper.myLooper执行完notifyAll，才会返回。所以能保证looper不会有空指针。
-### 5. invalidate/postInvalidate/requestLayout的区别？*
-### 6. Fragment:replace和add的区别？show和hide？commit和commitAllowStateloss？
+### 5. Vsync信号和Choreographer？
+一般手机为60帧，也就是一秒会刷新60次，每16.6ms刷新一次。  
+Vsync信号，一言以概之，就是一个同步一帧开始刷新的信号，**目的是为了让CPU/GPU充分的利用这16.6ms来进行下一帧数据的计算！**  
+而编舞者**Choreographer就是用来监听这个Vsync信号并进行绘制动作的工具。**  
+**Choreographer是线程单例的**，因为它要使用到当前线程的looper和handler机制。主线程的Choreographer在ViewRootImpl的构造函数中建立并持有。  
+首先，一个事实是，不管是requestLayout还是ValueAnimator.start()还是invalidate，**最终都会走到scheduleTraversals来完成ui的更新**。  
+scheduleTraversals做了**两件重要的事**：  
+1. 向主线程handler发送一个同步屏障。  
+2. 调用mChoreographer.postCallback(Choreographer.CALLBACK_TRAVERSAL, mTraversalRunnable, null)。  
+
+**Choreographer.postCallback的任务种类**  
+CALLBACK_INPUT: 输入事件。  
+CALLBACK_ANIMATION: 动画。  
+CALLBACK_INSETS_ANIMATION: 插入动画。
+CALLBACK_TRAVERSAL: 绘制。  
+CALLBACK_COMMIT: 提交。  
+5种事件会存入5个队列中，每当收到Vsync信号，Choreographer会依次按顺序执行5中事件。  
+
+**接下来会最终执行到postCallbackDelayedInternal** 
+该方法会将任务添加到对应的队列中，然后根据是否有延迟：  
+    a. 如果没有延迟，直接执行**scheduleFrameLocked**。  
+    b. 如果有延迟，则发送一个MSG_DO_SCHEDULE_CALLBACK类型的异步延迟消息到mHandler。前面已经设置了同步屏障，所以到时间后会立刻执行。
+    mHandler会处理下面3种消息：  
+        MSG_DO_FRAME：执行doFrame函数，也就是绘制流程。  
+        MSG_DO_SCHEDULE_VSYNC：执行doScheduleVsync，申请VSYNC信号，例如当前需要绘制任务时。  
+        MSG_DO_SCHEDULE_CALLBACK：执行doScheduleCallback。不出意外，doScheduleCallback最终还是执行的**scheduleFrameLocked**。  
+
+**scheduleFrameLocked**  
+判断是否开启了Vsync，Android4.1以上默认开启。  
+如果开启，则调用**scheduleVsyncLocked**函数，不在主线程就往mHandler发送一个MSG_DO_SCHEDULE_VSYNC异步消息去调用。  
+如果没开启，则需要自己计算一个下一帧的时间，然后发送一个MSG_DO_FRAME异步消息。
+
+**执行doScheduleVsync**  
+一句话，**通过FrameDisplayEventReceiver申请一个Vsync信号（回调）**，具体在native层实现，然后Vsync回来后，会调用onVsync。  
+onVsync最终会通过mHandler发送一个MSG_DO_FRAME，也就是执行绘制流程.  
+
+**doFrame**  
+两个工作，一个是计算一下掉帧数，虽然执行doFrame的都是异步消息，但是前面有可能有**正在执行的同步消息没有执行完毕**，所以也有可能掉帧。  
+另外一个，就是依次执行**5个任务队列**了。  
+
+**CallbackRecord**
+执行任务都会用doCallbacks方法。任务都会放在CallbackRecord里，然后调用他的run方法执行。根据参数中的token（一路传递下来的）有两种情况：  
+token为null，则说明任务是个Runnable，直接执行他的run。比如doTraversal传过来的mTraversalRunnable就是这个。  
+token是FRAME_CALLBACK_TOKEN，Choreographer的postFrameCallback传的就是这种类型的回调，回调类型是FrameCallback，消息类型是**CALLBACK_ANIMATION**。会执行FrameCallback.doFrame。  
+说白了就是一个回调类型的判断。  
+Choreographer.postFrameCallback通常会用来进行帧率的计算。
+
+**mTraversalRunnable**  
+**最后，mTraversalRunnable自然是执行performTraversals绘制三大流程。再次之前，还会移除同步屏障。**
+
+
+### 6. invalidate/postInvalidate/requestLayout的区别？*
+### 7. Fragment:replace和add的区别？show和hide？commit和commitAllowStateloss？
 1. fragment容器为空的时候，replace和add没有区别。
    
 2. 如果fragment容器有一个Fragment A。  
@@ -245,7 +342,7 @@ B: onPause 直到 onDetatch；
 
 - **add和replace比较**  
 1. 当Fragment不可见时，如果你要保留Fragment中的数据以及View的显示状态，那么可以使用add操作，后续中针对不同的状态隐藏和显示不同的Fragment。  
-优点：快，知识Fragment中View的显示和隐藏。  
+优点：快，只是Fragment中View的显示和隐藏。  
 缺点：内存中保留的数据太多，容易导致造成OOM的风险。  
 2. 当Fragment不可见时，你不需要保留Fragment中的数据以及View的显示状态，那么可以使用replace。  
 优点：节省内存，不需要的数据能立即释放掉。  
@@ -258,7 +355,7 @@ commit()操作是异步的，内部通过mManager.enqueueAction()加入处理队
   https://juejin.cn/post/6844903816240857095  
   https://juejin.cn/post/6943560702292557860
        
-### 7. invalidate和requestlayout的区别？postInvalidate呢？
+
 ### 8. 事件分发机制？
 分析滑动事件分发的4个重点：  
 1. 滑动事件MotionEvent，一般需要关注3个事件种类：DOWN，UP，MOVE；  
@@ -453,6 +550,9 @@ LiveData **是一个可观察的数据持有者，并且能够感知组件的生
 Activity有一个方法onRetainNonConfigurationInstance，这个方法由系统在Activity destroy的时候调用，比如翻转屏幕ComponentActivity覆写。覆写后，可以返回想要让系统存储的一个对象，viewModelStore就是在这里存储的。然后getViewModelStore里，会从NonConfigurationInstance里找之前的对象。  
 **Fragment如何共享数据？**  
 Fragment获取ViewModel的时候，传入Activity作为ViewModelProvider的入参就行，实际上共享的是Activity的ViewModel。
+
+### 16. 动画？原理？
+
 
 ## 源码/三方库
 ### 1. SharedPreferences是不是进程安全的？
