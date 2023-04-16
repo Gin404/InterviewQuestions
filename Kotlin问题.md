@@ -103,3 +103,7 @@ CoroutineDispatcher 定义了 Coroutine 执行的线程。Dispatchers 是一个�
 协程之间存在层级关系，一个Job会包含很多子Job。  
 如果父Job是一般的Job，在子Job产生异常后，会将异常传播给父Job。父Job会取消所有的子Job。  
 如果父Job是SupervisorJob，在子Job产生异常后，会自己捕获异常，不会传播给父Job。所以不会影响其他Job。  
+
+参考：https://rengwuxian.com/kotlin-coroutines-2/  
+https://juejin.cn/post/6950616789390721037#heading-29
+

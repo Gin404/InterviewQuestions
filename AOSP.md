@@ -1,8 +1,9 @@
 # Android Open Source Project 知识点
 
+## Dalvik和ART
 
 
-## 1. Android 系统启动过程
+## Android 系统启动过程
 
 第一步，启动 bootloader 
 
@@ -16,7 +17,7 @@ SystemServer
 
 
 
-## 2. 谈谈对 Zygote 的理解
+## 谈谈对 Zygote 的理解
 
 1.zygote 的作用：启动 SystemServer ，孵化应用进程
 
@@ -26,7 +27,8 @@ SystemServer
 
 怎么和其他进程通信？zygote 启动后，会进入 loop 循环，并开启 socket，等待其他进程和他通行。zygote 接收到 socket 请求后，会执行 runOnce 方法，先读取请求的参数列表，调用 fork 函数，fork 子进程。
 
-## 3. 应用进程如何启动的？
-## 4. Activity启动流程？
-## 5. Service启动流程？
-## 6. ContentProvider启动流程？
+## 应用进程如何启动的？
+## Activity启动流程？
+## Service启动流程？
+## ContentProvider启动流程？
+##  
