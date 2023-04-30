@@ -28,7 +28,13 @@ SystemServer
 怎么和其他进程通信？zygote 启动后，会进入 loop 循环，并开启 socket，等待其他进程和他通行。zygote 接收到 socket 请求后，会执行 runOnce 方法，先读取请求的参数列表，调用 fork 函数，fork 子进程。
 
 ## 应用进程如何启动的？
+应用进程启动不代表应用的UI已经展示出来了。在启动Activity之前，要首先保证应用进程的启动。Zygote在Java框架层有一个Server端的Socket，这个Socket就是用来等待AMS请求Zygote来创建新的应用进程的。  
+Zygote启动后创建了虚拟机实例、binder线程池和消息循环，所以Zygote fork出的应用进程，也就自带这些机制了。可以方便的使用binder和处理消息。  
+
+
 ## Activity启动流程？
+1. Launcher通过start
+2. 
 ## Service启动流程？
 ## ContentProvider启动流程？
 ##  

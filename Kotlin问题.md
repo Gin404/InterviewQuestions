@@ -96,7 +96,7 @@ CoroutineDispatcher 定义了 Coroutine 执行的线程。Dispatchers 是一个�
 **GlobalScope**: 不推荐使用。由于 GlobalScope 对象没有和应用生命周期组件相关联，需要自己管理 GlobalScope 所创建的 Coroutine，且GlobalScope的生命周期是 process 级别的，所以一般而言我们不推荐使用 GlobalScope 来创建 Coroutine。  
 **runBlocking{}**: 主要用于测试。运行一个新的协程并且阻塞当前可中断的线程直至协程执行完成，该函数不应从一个协程中使用，该函数被设计用于桥接普通阻塞代码到以挂起风格（suspending style）编写的库，以用于主函数与测试。该函数主要用于测试，不适用于日常开发，该协程会阻塞当前线程直到协程体执行完成。  
 **MainScope()**: 可用于开发。该函数是一个顶层函数，用于返回一个上下文是SupervisorJob() + Dispatchers.Main的作用域，该作用域常被使用在Activity/Fragment，并且在界面销毁时要调用fun CoroutineScope.cancel(cause: CancellationException? = null)对协程进行取消。  
-**LifecycleOwner.lifecycleScope**: 推荐使用。绑定Lifecycle生命周期，在destroy的时候自动销毁。常用语Activity/Fragment。 
+**LifecycleOwner.lifecycleScope**: 推荐使用。绑定Lifecycle生命周期，在destroy的时候自动销毁。常用语Activity/Fragment。  
 **ViewModel.viewModelScope**: 推荐使用。它能够在此ViewModel销毁时自动取消，同样不会造成协程泄漏。  
 
 ### 协程的取消和异常
