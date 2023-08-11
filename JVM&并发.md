@@ -1,79 +1,13 @@
 ## java基础
-### 基础类型
-byte：1字节  
-short：2字节  
-int：4字节  
-long：8字节  
-float：4字节  
-double：8字节  
-char：2字节  
-boolean：数组情况下是1字节，单个boolean是4字节  
-
-
-
-
-### Hashmap/SparseArray/ConcurrentHashMap实现。
-**1.SparseArray**  
-SparseArray是Android中一种特有的数据结构,用来替代HashMap的.初始化时默认容量为10它里面有两个数组,一个是int[]数组存放key,一个是Object[]数组用来存放value.  
-它的key只能为int.在put时会根据传入的key进行二分查找找到合适的插入位置,如果当前位置有值或者是DELETED节点,就直接覆盖,否则就需要拷贝该位置后面的数据全部后移一位,空出一个位置让其插入.如果数组满了但是还有DELETED节点,就需要调用gc方法,gc方法所做的就是把DELETED节点后面的数前移,压缩存储(把有数据的位置全部置顶).数组满了没有DELETED节点,就需要扩容.
-调用remove时,并不会直接把key从int[]数组里面删掉,而是把当前key指向的value设置成DELETED节点,这样做是为了减少int[] 数组的结构调整,结构调整就意味着数据拷贝.但是当我们调用keyAt/valueAt获取索引时,如果有DELETED节点旧必须得调用gc,不然获得的index是不对的.延迟回收的好处适合频繁删除和插入来回执行的场景,性能很好.
-get方法很简单,二分查找获取key对应的索引index,返回values[index]即可.  
-可以看到SparseArray比HashMap少了基本数据的自动装箱操作,而且不需要额外的结构体,单个元素存储成本低,在数据量小的情况下,随机访问的效率很高.但是缺点也显而易见,就是增删的效率比较低,在数据量比较大的时候,调用gc拷贝数组成本巨大.
-除了SparseArray,Android还提供了SparseIntArray(int:int),SparseBooleanArray(int:boolean),SparseLongArray(int:long)等,其实就是把对应的value换成基本数据类型.n  
-**2. HashMap**  
-**基本结构**：  
-jdk1.7 数组+链表。数组下标为根据key值算出的哈希值，数组元素为链表头，链表元素为KV键值对。  
-jdk1.8 数组+链表+红黑树。和jdk1.7的区别是，链表长度**超过8**的时候，链表结构会被转为红黑树。查询时间复杂度是O(log(n))，优于链表的O(n)。
-
-**jdk1.7流程：**  
-**初始化**：  
-数组初始长度：16，数组扩容必须乘2^n。  
-默认负载因子：0.75，也就是数组75%的位置满了之后，会进行扩容。  
-**put**：
-1. 判断数组table是否为null或者长度n是0，如果是，则执行resize进行初始化。
-2. 根据hash%n得到index，如果当前index上没有节点，则新建节点。
-3. 如果存在节点，那就是hash冲突，  
-   a. 遍历各节点，有相同的key值，则返回旧值，更新新值。  
-   b. 没有相同的节点，新建节点插入到对应链表尾部。  
-   c. 在遍历链表的过程中，如果链表长度大于8 (jdk1.8)，则转换链表为红黑树。
-4. ++size，如果size大于扩容阈值，则resize。
-5. 返回为null，那就是插入，不是更新。  
-
-**get**：  
-   比较简单，就是遍历链表和红黑树找到对应key的节点并返回value，否则返回null。  
-   **为啥长度一定要是2^n?**  
-   计算index的方式为hash&(len-1)，位运算计算效率高。换成二进制，len-1永远是1111...111，所以相当于直接取hash最后几位作为Index，分布比较均匀。而位运算下的十进制会有分布不均匀的情况，某种index会永远用不到。  
-   **线程安全问题！！！**  
-   首先了解一下resize的过程。  
-   当数组长度超过Capacity*LoadFactor的时候，会进行扩容。  
-   a. 先创建新的数组。  
-   b. 然后遍历原数组，把Entry重新哈希到新数组。  
-   **多个线程，同时扩容的过程中，有可能产生环形链表！！！** https://juejin.cn/post/7139320304920166430#heading-3  
-   **此后，进行get操作，会造成死循环！！！**
-
-**jdk1.8**：  
-循环链表的情况，已经解决了。jdk有别的问题。  
-**put方法会导致元素丢失**  
-多线程put，在p.next链表下一个元素新建赋值的时候，有覆盖的情况。  
-**put中要rehash扩容的时候，get可能返回null**
-线程1新建table并赋值给成员参数的时候，线程2get就会使用这个新的table，返回的就是null了。
-
-**3. ConcurrentHashMap**  
-**jdk1.7版本**  
-分段锁机制。每个ConcurrentHashMap维护一组Segment，每个Segment类似一个HashMap。每次put操作给自己的Segment加锁就行。put和rehash都是安全的。  
-**jdk1.8版本**  
-和1.7不同，没用Segment，而是和HashMap类似，用了一个Node数组来存储元素，也是数组+链表结构。  
-大量运用了Unsafe类保证线程安全。  
-**put**  
-如果对应的key的index上没有元素，则用Unsafe的CAS操作，新建节点。  
-如果发生了hash冲突，则以链表头为锁，synchronized。  
-**扩容**  
-新增一个成员变量nextTable，扩容后新的空的Node数组先赋值给这个成员变量，rehash都是针对这个nextTable完全不影响原来的table。  
-rehash的过程会用链表头结点作为锁加锁，此时不能对这个链表进行put。  
-在整个过程中，共享变量的存储和读取全部通过volatile或CAS的方式，保证了线程安全。  
-完成扩容后，再将nextTable赋值给table。  
 
 ## JVM
+### JVM的职责
+1. 执行字节码指令。
+2. 加载字节码中的Class结构。
+3. 分配和回收运行时内存。
+
+### 
+
 ### 反射是什么，在哪里用到，怎么利用反射创建一个对象?
 **概念**：在程序运行时，程序有能力获取一个类的所有方法和属性；并且对于任意一个对象，可以调用它的任意方法或者获取其属性。  
 java文件需要编译成.class文件才能被jvm加载使用,对象的.class数据在jvm里就是Class<T>；我们如果能拿到这个Class<T>对象，就能获取该Class<T>对应的对象类型，及在该类型声明的方法和属性值；还可以根据Class<T>创建相应的类型对象，通过Field,Method反过来操作对象。  
@@ -141,6 +75,37 @@ GC的两个工作：内存的划分和分配；垃圾回收。
 3. 标记-压缩算法：老年代对象存活时间久，复制算法效率较低。标记压缩算法在标记后，将可存活对象复制压缩到内存的一端，然后再清除边界外的内存。
 4. 分代收集算法：基于前面对新生代老年代的划分，分为Minor GC和Full GC。Minor GC针对新生代，是将Eden 和 From Survivor中存活的对象，复制到To Survivor中。有两种情况对象会晋升到老年代：存活对象分代年龄超过阈值（经历过对此Minor GC）和 To Survivor空间满了。复制完后，Eden和From就都是可回收的对象。然后From和To的两块空间会交换角色。Full GC就是用前面说的标记压缩法进行回收，耗时较长，收集频率比较低。
 
+### JMM内存模型
+硬件层内存模型：cpu寄存器（线程私有） -> 高速缓存（线程私有） -> 主内存RAM（线程共享）  
+JMM内存模型：  
+1. 定义了JVM在RAM的工作方式。
+2. 定义了主内存与线程工作内存之间的关系。
+3. 工作内存并不是物理存在的，实现方式包括硬件的告诉缓存、寄存器或者是编译器优化。
+
+JMM 8大原子性操作：
+1. lock/unlock: 标识/释放一个变量为线程独占。
+2. read/load: 把变量值从主内存传输到工作内存/把read的值给变量副本。
+3. use/assign: 执行引擎使用变量的值/将从执行引擎接收到的值放入变量副本。
+4. store/write: 把变量值从工作内存传到主内存/把store的值给变量。
+
+并发编程3大要素：
+1. **原子性：一个或一组操作是不可分割的原子，不能被打断。**
+   可以通过synchronized和一些lock来保证。
+2. **可见性：一个线程修改变量后，立即能被另一个线程观察到。**
+   volatile关键字要求变量被修改后立即同步到主内存，每次使用也必须从主内存读取。
+   synchronized保证加锁前清空工作内存的变量值，从主内存重新读取，在释放锁之前把工作内存变量刷新回主内存。
+3. **有序性：程序的执行顺序，对线程外部来说，是固定且可预期的。**
+   synchronized保证代码层面，对线程外部的有序性。
+   volatile则能防止指令重排序。
+
+指令重排序原则：  
+1. 重排序不能改变程序在单线程下的执行结果。（as-if-serial）
+2. 不会对存在依赖关系的指令进行重排序。（happens-before）
+
+**双重校验单例为啥要加volatile?**  
+1. synchronized只保证代码层面的有序性。
+2. 新建实例的字节码，构造函数和赋值给变量的操作，有可能重排序。
+3. 所以有可能变量拿到了实例，但是还未执行构造方法！！！！
 
 ### volatile的作用，在哪儿用到？
 volatile关键字为实例域的同步访问提供了免锁机制。volitale保证可见性（一个线程对值的修改立刻对其他线程可见）和有序性（禁止指令重排序，操作volitale变量之前的操作肯定在之后的操作前完成了），但是不保证原子性（比如自增操作）。  
@@ -165,6 +130,9 @@ ReentrantLock和synchronized都是悲观锁。二者区别如下：
 4. ReentrentLock可以是公平也可以是不公平的，默认不公平，syncrhonized是不公平的。
 5. ReentrentLock可以通过Condition绑定条件。通过condition来await和signall，和syncronized的await和notifyAll一样。
 6. ReentrentLock发生异常，如果没有unlock，很可能出现死锁，所以一定要由finally模块，进行对锁的释放，Sychronized发生异常会自动释放线程占用的锁。
+
+
+### 
 
 ### sleep和wait的区别？  
 1. sleep是Thread的静态方法，wait是Object的实例方法。

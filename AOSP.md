@@ -34,7 +34,22 @@ Zygote启动后创建了虚拟机实例、binder线程池和消息循环，所�
 
 ## Activity启动流程？
 1. Launcher通过start
-2. 
+
+## Activity如何展示在屏幕上的？
+### onCreate里setContentView流程
+1. 调用Activity的mWindow.setContentView(layoutId)；
+2. mWindow是attach的时候创建的**PhoneWindow**；
+3. 如果decorView为空，则创建DecorView；DecorView就是承载系统布局的FrameLayout；
+4. DecorView提供给contentView的位置就是contentParent；
+5. 最终把自己的layout inflate进contentParent。
+
+### onResume绘制流程
+1. 通过WindowManagerImpl添加decorView；
+2. 实则调用WindowManagerGlobal单例的addView。
+3. WindowManagerGlobal会给decorview绑定一个ViewRootImpl，并维护所有的devorview和ViewRootImpl。
+4. 然后调用ViewRootImpl.setView。
+5. 接下来：requestlayout-> 跨进程通知WMS添加窗口，
+
 ## Service启动流程？
 ## ContentProvider启动流程？
 ##  
