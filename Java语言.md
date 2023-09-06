@@ -38,6 +38,10 @@ boolean：数组情况下是1字节，单个boolean是4字节
 ### 泛型擦除
 1. 任何结合类型在字节码上new指令里，都不带泛型类型。所以运行时无法保证类型安全。
 
+## java泛型擦除的好处
+1. 兼容老代码，1.5之前不支持泛型擦除。保证老代码可以运行在新的jvm上。
+2. 节省内存。方法区的压力更小。否则要保存很多类型比如Basket<Apple>、Basket<Orange>等等。
+
 ## 泛型擦除带来的不便
 1. 方法重载，不同泛型类型，但却会导致方法无法重载。
 2. 静态作用域无法使用类泛型。class Basket<T> { static Basket<T> create(){} }，create方法报错，因为Basket<具体type>这个类并不存在！
@@ -130,3 +134,22 @@ b. 然后遍历原数组，把Entry重新哈希到新数组。
 rehash的过程会用链表头结点作为锁加锁，此时不能对这个链表进行put。  
 在整个过程中，共享变量的存储和读取全部通过volatile或CAS的方式，保证了线程安全。  
 完成扩容后，再将nextTable赋值给table。  
+
+
+### WeakHashMap
+1. 用于存放键值对，当发生gc时，其中的键值对可能被回收。适用于对内存敏感的缓存.
+2. 存放键值对的Entry继承自WeakReference。当发生gc时，Entry被回收并加入到ReferenceQueue中.
+3. 访问~时，会将已经gc的键值对从中删除（通过遍历ReferenceQueue）.
+
+### LinkedHashMap
+1. 是一个有序 map，可以按插入顺序或者访问顺序排列
+2. 在 hashMap 基础上增加了头尾指针形成双向链表，继承 Node 添加前后结点的指针，每次构建结点时会将他链接到链尾。
+3. 若是按访问顺序排序，存取键值对的时候会将其拆下插入到链尾，链头是最老的结点，满时会被移出
+4. 按访问顺序来排序是LRU缓存的一种实现。
+
+### ThreadLocal
+1. 用于将对象和当前线程绑定（将对象存储在当前线程的ThreadLocalMap结构中）
+2. ThreadLocalMap是一个类似HashMap的存储结构，键是ThreadLocal对象的弱引用，值是要保存的对象
+3. set()方法会获取当前线程的ThreadLocalMap对象
+4. threadLocal内存泄漏：key是弱引用，gc后被回收，value 被entry持有，再被ThreadLocalMap持有，再被线程持有，如果线程没有结束，则value无法访问到，也无法回收，方案是及时remove掉不用的value
+5. threadlocal 会自动清理key为null 的entry

@@ -31,7 +31,14 @@ tailrec关键字，尾递归优化防止栈溢出
 
 ## Kotlin如何支持Java中没有的特性
 
-## 扩展函数和扩展属性
+
+## 一些常用kotlin语法的原理
+### object单例？
+### by lazy委托？
+### companion object？
+### sealed class？
+
+### 扩展函数和扩展属性
 扩展具体用法：
 
 	fun 类名.方法名([参数 1, 参数 2, ...]): 返回类型 {

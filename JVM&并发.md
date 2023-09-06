@@ -53,6 +53,22 @@ Application ClassLoader（应用程序类加载器）：又称System ClassLoader
 5. 设置对象的对象头。  
    将对象所属的类、hashcode、GC分代年龄等数据存储在对象的对象头中。
 6. 执行init方法，初始化对象的成员变量，调用类的构造方法。
+
+### 对象的生命周期
+1. 创建：为对象分配内存，构造对象
+2. 应用：至少一个强引用指向它
+3. 不可见：不再持有强引用（程序执行超出了对象的作用域）
+4. 不可达：没有强引用指向
+5. 收集：准备gc，会执行 finalize()
+6. 终结：等待垃圾回收
+7. Deallocated：回收完成
+
+### 类构造顺序
+1. 先父亲，再孩子
+2. 先静态再非静态
+3. 先字段，后构造器（字段先后有定义顺序决定）
+4. 先代码块 后构造方法
+
 ### jvm内存结构。（运行时数据区域）
 1. 程序计数器：也就是PC寄存器，**线程私有**。用来保存下一条需要执行的字节码的地址。如果不是Native方法，那存储的就是正在执行的字节码的地址；如果是Native方法，那就是Undefined。唯一没有规定任何OutOfMemoryErro情况的数据区域。
 2. Java虚拟机栈：**线程私有**。用来存储线程中Java方法调用的状态，包括局部变量、参数、返回值以及运算中间结果等。当中有多个栈帧，调用一个方法就会压入一个栈帧。线程请求的栈容量超过最大容量会抛出StackOverflow；虚拟机栈可以动态扩展，但是如果扩展没有足够内存会抛出OutOfMemoryError。
@@ -166,3 +182,9 @@ core pool > queue > not core pool
 **CachedThreadPool**: 没有核心线程，最大线程数位MAX_VALUE，keepAliveTime位60s。采用SynchronousQueue。也就是每次提交新任务，都立即会有线程去处理。适合大量需要立即执行且耗时少的任务。  
 **SingleThreadExecutor**: 只有一个核心线程，没有非核心线程。采用LinkedBlockingQueue。确保任务在单个线程中按顺序执行。  
 **ScheduleThreadPool**: 自定义核心线程数，最大线程数为MAX_VALUE。使用DelayedWorkQueue。用于延时或者周期执行任务。
+
+
+
+### Synchronized原理 
+关键字三种用法：实例方法，静态方法，代码块。
+
